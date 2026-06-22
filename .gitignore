@@ -1,0 +1,15 @@
+# local price-history caches (state, not source) - one db per source
+data/
+*.db
+
+# tooling state
+.omc/
+
+# personal notes - not for the public repo
+_personal/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
