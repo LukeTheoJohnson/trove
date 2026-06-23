@@ -29,6 +29,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
 | spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
+| grabone    | `sources/grabone.py`   | deal URL path   | **ephemeral** (daily-deal catalog churn + RRP/discount, never archived) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -76,6 +77,16 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **grabone gate (2026-06-23, NZ daily deals):** `grabone.co.nz` 302s to the `new.grabone.co.nz`
+  Next.js rebuild; its robots `Allow: /` with only `/cms /dev /admin` (and the old host's `/my-stuff
+  /buy /gocount.php`) disallowed - none fence the browse data. Key finding: the deal data is in the
+  page's own `application/ld+json` (CollectionPage -> ItemList of Product on a region listing; a
+  Product on each deal page) = **page-parse = sanctioned = trove**, no private call. Field split to
+  remember: the *listing* ld+json carries the RRP/strikethrough (priceSpecification StrikethroughPrice)
+  but no expiry; the *detail* ld+json carries validFrom/validThrough + seller location but **no**
+  strikethrough. So `search` (listing) captures price+RRP+discount, `item`/`poll` (detail) capture
+  price+expiry+availability; is_deal = live-and-grabbable (in stock, not past validThrough), discount
+  shown as enrichment. Short `/p/<slug>` URLs 404 - the full category path is the join key.
 - **em6 gate (2026-06-23, NZ electricity spot):** `www.em6.co.nz` robots empty → 302 to the
   `app.em6.co.nz` React SPA (no robots fence). The SPA's bundle calls
   `https://api.em6.co.nz/ords/em6/data_api` (Oracle ORDS) and bundles AWS Cognito (user pool
