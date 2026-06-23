@@ -37,6 +37,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 | em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
 | grabone | deal URL path       | NZ daily-deal price + RRP/discount + live-until-expiry | page-published JSON-LD |
 | grabaseat| ORIGIN-DEST route   | Air NZ cheapest fare per route + standout-dip deal | keyless grabaseat fare API |
+| bookme  | activity URL path   | NZ activity deal price + spaces-remaining + steep-discount deal | SSR page-parse |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).

@@ -31,6 +31,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
 | grabone    | `sources/grabone.py`   | deal URL path   | **ephemeral** (daily-deal catalog churn + RRP/discount, never archived) | **high** |
 | grabaseat  | `sources/grabaseat.py` | ORIGIN-DEST     | **ephemeral** (per-route cheapest airfare, moves daily, never archived) | **high** |
+| bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -68,6 +69,16 @@ high on this column.
   fencing the exact data endpoint. Hard skip for an autonomous tool even though the API is keyless
   and documented (sanctioned-first only applies to an un-fenced path).
 
+## Skipped (continued)
+
+- **PB Tech** `[skipped] 2026-06-23` — `pbtech.co.nz/robots.txt` has `Disallow: /search*` for the
+  general `User-agent: *` (only Adsbot/Mediapartners are allowed `/search*`). Product detail pages
+  (price data) are allowed, but the discovery/search query path is fenced - one of the skill's
+  explicit skip triggers - so an autonomous tool with a `search` command would hit a disallowed path.
+  Skip rather than ship a search-crippled or robots-pushing retail source. (Supersedes the old
+  playbook note that tagged PB Tech as a page-parse trove candidate - that predated reading the
+  `/search` disallow.)
+
 ## Notes
 
 - **The hoard only compounds if `poll` runs on a schedule** — which is exactly the gate
@@ -78,6 +89,20 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **bookme gate (2026-06-23, NZ activity deals):** `bookme.co.nz` has no robots.txt (404), older
+  jQuery-era SSR site (`/things-to-do/<region>`). No JSON/JSON-LD - the deals are in the page HTML
+  as `dealCard` blocks (page-parse = sanctioned = trove). Each `<div activity-ref="/things-to-do/
+  <region>/activity/<slug>/<id>" class="dealCard ">` carries h3 name, `$NNN<sup>cc</sup>` from-price,
+  `N% Off`, `hd_dealSpaces` (spaces remaining = a scarcity time-series, stored as Obs.qty), deal
+  window, and `Save up to $X`. The activity-ref path encodes the region so one card-parser serves
+  both search and fetch. Distinct from grabone: tracks *spaces remaining* ticking down, not just
+  price.
+- **TAB NZ (api.tab.co.nz affiliates) `[assessed, deferred 2026-06-23]`** — robots only fences
+  `/*?s=`; `api.tab.co.nz/affiliates/v1/racing/meetings` returns 200 keyless (a *sanctioned*
+  affiliates API). But the content is **global racing** (meetings[0] = Munich DEU), the model is
+  3-level nested (meetings->races->runners, odds on a separate call), entities resolve within hours,
+  and it's a gambling source on a public repo - weak on the "NZ-specific" ask and off-brand for
+  public trove. Park: revisit as a *hoard* odds-drift hoard (opening->closing line) if Luke wants it.
 - **grabaseat gate (2026-06-23, Air NZ cheap fares):** `grabaseat.co.nz` robots `allow: /` (only a
   sitemap line), CloudFront-fronted React app (gas001 theme). Deals aren't embedded in the homepage;
   the fare-finder bundle (`lowFareFinder.js`) calls a keyless same-origin endpoint
