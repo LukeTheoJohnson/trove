@@ -28,6 +28,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 | discogs | release id          | marketplace lowest price + num for sale | keyless official API         |
 | itunes  | trackId/collectionId| app/album/song price + going free      | keyless official Search API  |
 | scryfall| card id             | MTG single price (usd/eur/tix) + foil deal | keyless official API     |
+| pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 
 Every source runs the same commands: `doctor search item watch poll deals drops`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
