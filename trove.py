@@ -20,7 +20,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
-SOURCES = ("steam", "discogs", "itunes", "scryfall", "pokemontcg")
+SOURCES = ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck")
 
 
 def main(argv=None):

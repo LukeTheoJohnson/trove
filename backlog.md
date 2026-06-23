@@ -14,14 +14,15 @@ driver to this repo. Genre filter: **data trapped behind a consumer UI + curl-ab
 | itunes     | `sources/itunes.py`    | trackId    | app/album/song price + going free            | keyless official API |
 | scryfall   | `sources/scryfall.py`  | card id    | MTG single price (usd/eur/tix) + foil deal   | keyless official API |
 | pokemontcg | `sources/pokemontcg.py`| card id    | Pokemon single market price (usd/eur) + under-market deal | keyless official API (api.pokemontcg.io) |
+| ygoprodeck | `sources/ygoprodeck.py`| card id    | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API (db.ygoprodeck.com) |
 
 ## Active queue
 
-- **CheapShark** — PC game deals aggregated across ~30 stores. Official keyless deals API
-  (`cheapshark.com/api`), join key = `gameID`, timeline = cheapest price + `savings` %. Strong
-  sanctioned fit; overlaps steam but aggregates many stores.
 - **CoinGecko** — crypto spot prices, keyless public API, join key = coin id, timeline = price.
   Sanctioned; more finance-API than trapped-behind-UI, but clean.
+- **Epic Games Store free-games feed** — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
+  (the store page's own backend, keyless). Join key = game id, timeline = which games are free each
+  week (deal = currently free). Gate Epic robots/ToS before recon.
 - **Open Library** — book editions/metadata (`openlibrary.org`), join key = ISBN/OLID. Sanctioned,
   but weak timeline value (metadata rarely changes); only qualifies if a price/availability signal
   is found.
@@ -30,7 +31,9 @@ driver to this repo. Genre filter: **data trapped behind a consumer UI + curl-ab
 
 ## Skipped
 
-_(none yet)_
+- **CheapShark** `[skipped] 2026-06-23` — `cheapshark.com/robots.txt` has `Disallow: /api/1.0/`,
+  fencing the exact data endpoint. Hard skip for an autonomous tool even though the API is keyless
+  and documented (sanctioned-first only applies to an un-fenced path).
 
 ## Notes
 
@@ -39,3 +42,11 @@ _(none yet)_
   boilerplate — no signal set to `no`, no `Disallow` on `/api`. Official keyless developer API →
   sanctioned-first, recon skipped. Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use
   `lowPriceExPlus` as the clean EUR floor (read the field, don't trust the obvious name).
+- **ygoprodeck gate (2026-06-23):** `db.ygoprodeck.com/robots.txt` → `User-agent: * / Allow: /`
+  (no `/api` Disallow) + Cloudflare content-signals `search=yes,ai-train=no`, plus per-UA blocks on
+  AI-training crawlers (ClaudeBot, GPTBot, CCBot, Google-Extended...). Passes both skip triggers by
+  the letter (no /api Disallow for `*`; vocabulary preamble, not a written access ban; `ai-train=no`
+  doesn't apply to a price client that does no training). Proceeded as a personal API client with an
+  honest UA, honoring the no-training/no-redistribution posture. Lesson: across-marketplace YGO
+  prices mix currencies + resale noise (cardmarket EUR, amazon/ebay inflated) — the only honest
+  arbitrage signal compares the two legit US singles retailers, TCGplayer vs CoolStuffInc.
