@@ -28,6 +28,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
 | spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
+| em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -48,7 +49,9 @@ high on this column.
    (`sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes`); every station's per-grade prices. Built
    as the keyless realization of the fuel-pipeline intent after UK's keyless path closed (see #1).
 3. **Octopus Energy Agile tariff** `[HIGH]` — keyless public API of half-hourly unit rates; ephemeral
-   pricing that decays. Join key = tariff/region, timeline = the rate series.
+   pricing that decays. Join key = tariff/region, timeline = the rate series. (NZ sibling already
+   shipped 2026-06-23: `em6` half-hourly wholesale spot — see Ported. Octopus is the UK *retail*
+   tariff cut of the same genre.)
 4. **Epic Games free-games rotation** `[MED-HIGH]` — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
    (the store's own backend, keyless). The weekly free-game rotation is ephemeral and barely archived.
    Deal = currently free. Gate Epic robots/ToS before recon.
@@ -73,6 +76,15 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **em6 gate (2026-06-23, NZ electricity spot):** `www.em6.co.nz` robots empty → 302 to the
+  `app.em6.co.nz` React SPA (no robots fence). The SPA's bundle calls
+  `https://api.em6.co.nz/ords/em6/data_api` (Oracle ORDS) and bundles AWS Cognito (user pool
+  `ap-southeast-2_Zo8h88J4v`). Key finding: em6 ships a **deliberately-public keyless tier** — the
+  page-called endpoints `/region/price/`, `/price`, `/price/free_24hrs` answer 200 with no token,
+  while `/demand`, `/generation`, raw `/nodes` are 401/403 behind the Cognito login. Used only the
+  keyless public tier (sanctioned = page-called) → trove, not the gated endpoints. Lesson: an
+  endpoint literally named `free_24hrs` next to a Cognito wall is the vendor signposting its public
+  vs members tier — take the free tier, leave the walled one.
 - **ygoprodeck gate (2026-06-23):** `db.ygoprodeck.com` → `User-agent: * / Allow: /` (no `/api`
   Disallow) + content-signals `search=yes,ai-train=no` + per-UA blocks on AI-training crawlers
   (ClaudeBot, GPTBot...). Passes both skip triggers by the letter; proceeded as a personal API client

@@ -34,6 +34,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 | pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 | ygoprodeck| card id (passcode) | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API |
 | spainfuel | province-IDEESS     | per-station petrol price (G95E5) + below-area-avg deal | keyless MINETUR open-data REST |
+| em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
