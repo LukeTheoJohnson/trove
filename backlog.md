@@ -32,6 +32,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | grabone    | `sources/grabone.py`   | deal URL path   | **ephemeral** (daily-deal catalog churn + RRP/discount, never archived) | **high** |
 | grabaseat  | `sources/grabaseat.py` | ORIGIN-DEST     | **ephemeral** (per-route cheapest airfare, moves daily, never archived) | **high** |
 | bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
+| petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -89,6 +90,22 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **petrolspy gate (2026-06-23, NZ fuel - fills the Gaspy gap):** `petrolspy.com.au` (covers AU+NZ)
+  robots disallows only `/admin-1/`. The web map calls a keyless service
+  `webservice-1/station/box?neLat=&neLng=&swLat=&swLng=` (gzipped; needs `--compressed`/Accept-Encoding)
+  returning every station in the box with `{name, brand, suburb, address, location{x:lng,y:lat},
+  country, prices:{GRADE:{amount(cents/L), updated(epoch ms), relevant}}}`. Keyless + robots-allowed +
+  page-called = sanctioned -> trove. Scoped to NZ city bounding boxes (auckland/wellington/christchurch)
+  so it tracks NZ forecourt prices - the gap Gaspy left (app-only, Firebase-leak skip). NZ twin of
+  spainfuel. By-id endpoint is dead, so fetch scans the city boxes; the client memoizes each box so a
+  whole poll is <=1 GET per box. Caveat: crowd-sourced, freshness varies per grade (`updated`/`relevant`
+  surfaced).
+- **Designer Wardrobe** `[skipped] 2026-06-23` — NZ second-hand fashion marketplace (Nuxt + Laravel).
+  Empty robots, but the listings aren't a clean page-parse: the `apiBaseUrl=/api` backend is Laravel and
+  key routes are auth-gated (`/api/feed` -> 401 invalid-auth-header = reverse-engineered private =
+  hoard, not trove), and the `__NUXT__` SSR state is minified with hoisted value-refs (`price_nzd` values
+  aren't literal) - too fragile for a thin source. Confirms the "NZ retail is fenced" lesson extends to
+  NZ marketplaces (gated/auth'd). Revisit only as a hoard source if the listings API turns out keyless.
 - **bookme gate (2026-06-23, NZ activity deals):** `bookme.co.nz` has no robots.txt (404), older
   jQuery-era SSR site (`/things-to-do/<region>`). No JSON/JSON-LD - the deals are in the page HTML
   as `dealCard` blocks (page-parse = sanctioned = trove). Each `<div activity-ref="/things-to-do/
