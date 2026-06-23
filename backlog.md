@@ -30,6 +30,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
 | grabone    | `sources/grabone.py`   | deal URL path   | **ephemeral** (daily-deal catalog churn + RRP/discount, never archived) | **high** |
+| grabaseat  | `sources/grabaseat.py` | ORIGIN-DEST     | **ephemeral** (per-route cheapest airfare, moves daily, never archived) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -77,6 +78,14 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **grabaseat gate (2026-06-23, Air NZ cheap fares):** `grabaseat.co.nz` robots `allow: /` (only a
+  sitemap line), CloudFront-fronted React app (gas001 theme). Deals aren't embedded in the homepage;
+  the fare-finder bundle (`lowFareFinder.js`) calls a keyless same-origin endpoint
+  `https://www.grabaseat.co.nz/api/v3/lowfarefinder/{ORIGIN}/{DEST}` -> `{lowestPrice, lowFares:[{farePrice,
+  outboundDate, bookUrl}]}` (cheapest fare per day for ~30 days). Page-called + robots-allowed =
+  **sanctioned -> trove**. Lesson: a React deals grid with no embedded JSON usually means the data is
+  a client-side fetch - grep the *named* bundle (lowFareFinder.js), not the loader stub (dealList.js),
+  for the path. Endpoint is per-route (no list-all), so the route is the explicit join key.
 - **grabone gate (2026-06-23, NZ daily deals):** `grabone.co.nz` 302s to the `new.grabone.co.nz`
   Next.js rebuild; its robots `Allow: /` with only `/cms /dev /admin` (and the old host's `/my-stuff
   /buy /gocount.php`) disallowed - none fence the browse data. Key finding: the deal data is in the
