@@ -27,6 +27,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | scryfall   | `sources/scryfall.py`  | card id    | archived (MTGGoldfish)           | low (PoC) |
 | pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
+| spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -34,12 +35,18 @@ high on this column.
 
 ## Active queue (ephemeral-first)
 
-1. **UK fuel — CMA open data** `[HIGH]` — government-mandated open feeds; each major retailer publishes
-   a standardized fuel-prices JSON at a fixed URL (`gov.uk/guidance/access-fuel-price-data`). Keyless,
-   sanctioned, **snapshot-only — nobody archives the per-station history**. Join key = station/site id,
-   per-grade price. The textbook first hoard pipeline. (Aggregate several retailer feeds into one source.)
-2. **Spain fuel — MINETUR API** `[HIGH]` — `geoportalgasolineras.es` public REST of every station's
-   prices, keyless. Same ephemeral-state shape as UK.
+1. **UK fuel — CMA open data** `[RECLASSIFIED 2026-06-23 — no longer a keyless daily-drop]` — the
+   interim voluntary scheme that published keyless per-retailer JSON feeds **closed 1 May 2026** and
+   gov.uk withdrew the feed listing (`gov.uk/guidance/access-fuel-price-data` is now [Withdrawn]). Some
+   retailer feeds still serve (Asda, Morrisons 200; Tesco 403, Sainsbury's dead), but they're no longer
+   sanctioned-by-listing. The permanent replacement, **Fuel Finder** (Motor Fuel Price (Open Data)
+   Regulations 2025, operated by VE3 Global), is **OAuth-gated**: GOV.UK One Login + OAuth 2.0 client
+   credentials (`developer.fuel-finder.service.gov.uk`), plus twice-daily CSV bulk downloads. So UK fuel
+   is now a *register-an-app + env-keys* build like trademe-cli — not a one-run keyless drop. Park until
+   Luke wants to register a One Login developer account; then it's a clean OGL-v3.0 sanctioned source.
+2. ~~**Spain fuel — MINETUR API**~~ `[DONE 2026-06-23]` → `sources/spainfuel.py`. Keyless MINETUR REST
+   (`sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes`); every station's per-grade prices. Built
+   as the keyless realization of the fuel-pipeline intent after UK's keyless path closed (see #1).
 3. **Octopus Energy Agile tariff** `[HIGH]` — keyless public API of half-hourly unit rates; ephemeral
    pricing that decays. Join key = tariff/region, timeline = the rate series.
 4. **Epic Games free-games rotation** `[MED-HIGH]` — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
