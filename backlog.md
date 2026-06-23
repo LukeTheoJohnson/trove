@@ -1,33 +1,54 @@
 # trove — tool-drop backlog
 
-Targets for the `/daily-tool-drop` routine. Each run picks the top unused candidate from the Active
-queue, gates it (robots + sanctioned-first), and — if it passes — adds a thin `sources/<name>.py`
-driver to this repo. Genre filter: **data trapped behind a consumer UI + curl-able JSON + a join key
-+ a reason to track it over time.**
+Targets for the `/daily-tool-drop` routine. trove is a **hoarding engine**: the product isn't a
+deal-finder, it's the *owned, proprietary, un-rebuildable time-series* the cache compounds into —
+data that feeds other work and proves the capability.
+
+**The filter is ephemerality, not keyless.** Anyone can wrap a keyless API; the question that decides
+hoard value is: **can you rebuild this history later, or is the snapshot the only record?**
+
+- **High hoard value** — ephemeral *state* with no public archive: live listings, inventory/availability,
+  per-station fuel prices, "free this week" rotations, half-hourly tariffs. Gone tomorrow if you don't
+  capture it.
+- **Low hoard value (PoC-only)** — commodity prices whose history is already downloadable (crypto,
+  mainstream card prices via MTGGoldfish/TCGplayer charts, Steam prices via SteamDB). You can backfill
+  these anytime, so capturing them yourself is redundant. Fine for a capability demo; not a moat.
+
+Genre still holds (UI-trapped JSON + a join key), gated the same way (robots + sanctioned-first), and
+each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 
 ## Ported sources
 
-| source     | `sources/…`            | join key   | timeline value                              | path     |
-|------------|------------------------|------------|---------------------------------------------|----------|
-| steam      | `sources/steam.py`     | appid      | game price + discount %                      | keyless Storefront API |
-| discogs    | `sources/discogs.py`   | release id | marketplace lowest price + num for sale      | keyless official API |
-| itunes     | `sources/itunes.py`    | trackId    | app/album/song price + going free            | keyless official API |
-| scryfall   | `sources/scryfall.py`  | card id    | MTG single price (usd/eur/tix) + foil deal   | keyless official API |
-| pokemontcg | `sources/pokemontcg.py`| card id    | Pokemon single market price (usd/eur) + under-market deal | keyless official API (api.pokemontcg.io) |
-| ygoprodeck | `sources/ygoprodeck.py`| card id    | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API (db.ygoprodeck.com) |
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| steam      | `sources/steam.py`     | appid      | archived (SteamDB)               | low (PoC) |
+| discogs    | `sources/discogs.py`   | release id | **ephemeral** (live listing count + lowest ask, never archived) | **high** |
+| itunes     | `sources/itunes.py`    | trackId    | free/price events not archived   | medium |
+| scryfall   | `sources/scryfall.py`  | card id    | archived (MTGGoldfish)           | low (PoC) |
+| pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
+| ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
 
-## Active queue
+The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
+public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
+high on this column.
 
-- **CoinGecko** — crypto spot prices, keyless public API, join key = coin id, timeline = price.
-  Sanctioned; more finance-API than trapped-behind-UI, but clean.
-- **Epic Games Store free-games feed** — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
-  (the store page's own backend, keyless). Join key = game id, timeline = which games are free each
-  week (deal = currently free). Gate Epic robots/ToS before recon.
-- **Open Library** — book editions/metadata (`openlibrary.org`), join key = ISBN/OLID. Sanctioned,
-  but weak timeline value (metadata rarely changes); only qualifies if a price/availability signal
-  is found.
-- **BoardGameGeek XML API** — board-game data, join key = thing id. Sanctioned XML API, but pricing
-  isn't in the API — weak timeline value unless a marketplace endpoint surfaces.
+## Active queue (ephemeral-first)
+
+1. **UK fuel — CMA open data** `[HIGH]` — government-mandated open feeds; each major retailer publishes
+   a standardized fuel-prices JSON at a fixed URL (`gov.uk/guidance/access-fuel-price-data`). Keyless,
+   sanctioned, **snapshot-only — nobody archives the per-station history**. Join key = station/site id,
+   per-grade price. The textbook first hoard pipeline. (Aggregate several retailer feeds into one source.)
+2. **Spain fuel — MINETUR API** `[HIGH]` — `geoportalgasolineras.es` public REST of every station's
+   prices, keyless. Same ephemeral-state shape as UK.
+3. **Octopus Energy Agile tariff** `[HIGH]` — keyless public API of half-hourly unit rates; ephemeral
+   pricing that decays. Join key = tariff/region, timeline = the rate series.
+4. **Epic Games free-games rotation** `[MED-HIGH]` — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
+   (the store's own backend, keyless). The weekly free-game rotation is ephemeral and barely archived.
+   Deal = currently free. Gate Epic robots/ToS before recon.
+5. **A pure listings source** `[HIGH]` — deepen discogs to capture marketplace *inventory churn*, or
+   find another marketplace with a keyless listings endpoint. Listings are the canonical ephemeral hoard.
+6. **CoinGecko / crypto** `[LOW — PoC only]` — keyless, clean, but full price history is downloadable,
+   so low hoard value. Build only as a breadth/PoC demo, not for the corpus.
 
 ## Skipped
 
@@ -37,16 +58,16 @@ driver to this repo. Genre filter: **data trapped behind a consumer UI + curl-ab
 
 ## Notes
 
-- **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` is empty (no Disallow). The
-  marketing site `pokemontcg.io/robots.txt` carries only Cloudflare content-signal *vocabulary*
-  boilerplate — no signal set to `no`, no `Disallow` on `/api`. Official keyless developer API →
-  sanctioned-first, recon skipped. Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use
-  `lowPriceExPlus` as the clean EUR floor (read the field, don't trust the obvious name).
-- **ygoprodeck gate (2026-06-23):** `db.ygoprodeck.com/robots.txt` → `User-agent: * / Allow: /`
-  (no `/api` Disallow) + Cloudflare content-signals `search=yes,ai-train=no`, plus per-UA blocks on
-  AI-training crawlers (ClaudeBot, GPTBot, CCBot, Google-Extended...). Passes both skip triggers by
-  the letter (no /api Disallow for `*`; vocabulary preamble, not a written access ban; `ai-train=no`
-  doesn't apply to a price client that does no training). Proceeded as a personal API client with an
-  honest UA, honoring the no-training/no-redistribution posture. Lesson: across-marketplace YGO
-  prices mix currencies + resale noise (cardmarket EUR, amazon/ebay inflated) — the only honest
-  arbitrage signal compares the two legit US singles retailers, TCGplayer vs CoolStuffInc.
+- **The hoard only compounds if `poll` runs on a schedule** — which is exactly the gate
+  `/daily-tool-drop` won't cross without a fresh explicit OK. Arming polite scheduled polling per
+  source is a conscious, per-source decision (Luke approves).
+- **`export` ships the hoard** to other tools as CSV (`python trove.py <source> export`); schema in
+  `DATA_DICTIONARY.md`.
+- **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
+  Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
+  Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **ygoprodeck gate (2026-06-23):** `db.ygoprodeck.com` → `User-agent: * / Allow: /` (no `/api`
+  Disallow) + content-signals `search=yes,ai-train=no` + per-UA blocks on AI-training crawlers
+  (ClaudeBot, GPTBot...). Passes both skip triggers by the letter; proceeded as a personal API client
+  with an honest UA, no training/redistribution. Lesson: cross-marketplace prices mix currencies +
+  resale noise — only TCGplayer-vs-CoolStuffInc is an honest arbitrage signal.

@@ -136,3 +136,31 @@ class TrackerDB:
             if f and l and f["price_cents"] is not None and l["price_cents"] is not None and l["price_cents"] < f["price_cents"]:
                 out.append((nm["name"] if nm else iid, f["price_cents"], l["price_cents"]))
         return sorted(out, key=lambda x: x[2] - x[1])
+
+    # -- export (the whole hoard, not just the watchlist) ----------------- #
+    def items_rows(self):
+        return self.conn.execute(
+            "SELECT item_id,name,subtitle,category,extra,first_seen,last_seen FROM items ORDER BY item_id"
+        ).fetchall()
+
+    def obs_rows(self):
+        """Every observation, denormalized with item metadata - the full time-series."""
+        return self.conn.execute(
+            """SELECT i.item_id,i.name,i.subtitle,i.category,
+                      o.ts,o.price_cents,o.was_cents,o.qty,o.tag,o.flags,
+                      i.first_seen,i.last_seen
+               FROM obs o JOIN items i ON i.item_id=o.item_id
+               ORDER BY o.item_id,o.ts,o.id"""
+        ).fetchall()
+
+    def latest_rows(self):
+        """Latest observation per item (snapshot), all items."""
+        return self.conn.execute(
+            """SELECT i.item_id,i.name,i.subtitle,i.category,
+                      o.ts,o.price_cents,o.was_cents,o.qty,o.tag,o.flags,
+                      i.first_seen,i.last_seen
+               FROM obs o JOIN items i ON i.item_id=o.item_id
+               WHERE o.id=(SELECT id FROM obs o2 WHERE o2.item_id=o.item_id
+                           ORDER BY o2.ts DESC,o2.id DESC LIMIT 1)
+               ORDER BY i.item_id"""
+        ).fetchall()

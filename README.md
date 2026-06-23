@@ -6,7 +6,9 @@ deal signals. Every fetch writes a timestamped row to a local SQLite cache, so t
 more it knows.
 
 Reading today's price is easy; anyone can do that. The point is that trove started caching three
-months ago, so it can tell you today's price is actually a bad one.
+months ago, so it can tell you today's price is actually a bad one. The cache is the product: trove
+is a hoarding engine for proprietary, un-rebuildable time-series, and `export` hands the whole thing
+to your other tools as CSV (schema in [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md)).
 
 ```bash
 python trove.py steam   search "elden ring"
@@ -15,6 +17,7 @@ python trove.py itunes  watch add 1713845538
 python trove.py steam   poll        # log prices, report DROPs + sales
 python trove.py steam   deals        # on-sale now
 python trove.py steam   drops        # cheaper than first seen
+python trove.py steam   export       # dump the cached time-series to CSV (see DATA_DICTIONARY.md)
 ```
 
 Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled
@@ -31,7 +34,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 | pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 | ygoprodeck| card id (passcode) | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API |
 
-Every source runs the same commands: `doctor search item watch poll deals drops`, plus a few
+Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
 
 ## Architecture
@@ -69,7 +72,7 @@ class FooSource(Source):
 SOURCE = FooSource()
 ```
 
-Add the name to `SOURCES` in `trove.py`. The whole `doctor/search/item/watch/poll/deals/drops`
+Add the name to `SOURCES` in `trove.py`. The whole `doctor/search/item/watch/poll/deals/drops/export`
 command set comes for free. Optionally override `refresh()` for a leaner poll endpoint (discogs does
 this: rich `/releases` for `item`, lean `/marketplace/stats` for `poll`).
 

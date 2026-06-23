@@ -8,6 +8,7 @@ detection) is handled here against TrackerDB. A new source is ~50 lines.
 from __future__ import annotations
 
 import argparse
+import csv
 import os
 import time
 
@@ -86,6 +87,10 @@ def run_cli(source: Source, argv: list[str], data_dir: str) -> int:
     sub.add_parser("poll", help="refresh watched items, log prices, report drops/" + source.deal_label)
     sub.add_parser("deals", help=f"watched items that are a {source.deal_label} now")
     sub.add_parser("drops", help="watched items cheaper than first seen")
+    ep = sub.add_parser("export", help="export the cached hoard to CSV (full obs log / items / latest snapshot)")
+    ep.add_argument("--what", choices=["obs", "items", "latest"], default="obs",
+                    help="obs = full time-series (default); items = catalog; latest = newest row per item")
+    ep.add_argument("--out", help="output path (default data/<source>_<what>.csv)")
 
     args = p.parse_args(argv)
     cl = source.client(args)
@@ -180,6 +185,23 @@ def run_cli(source: Source, argv: list[str], data_dir: str) -> int:
         print("Cheaper than first seen:")
         for name, f, l in hits:
             print(f"  {money(f)} -> {money(l)}  {name}")
+        return 0
+
+    if args.cmd == "export":
+        if args.what == "items":
+            rows = db.items_rows()
+            cols = ["item_id", "name", "subtitle", "category", "extra", "first_seen", "last_seen"]
+        else:
+            rows = db.obs_rows() if args.what == "obs" else db.latest_rows()
+            cols = ["item_id", "name", "subtitle", "category", "ts", "price_cents",
+                    "was_cents", "qty", "tag", "flags", "first_seen", "last_seen"]
+        out = args.out or os.path.join(data_dir, f"{source.name}_{args.what}.csv")
+        with open(out, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(["source"] + cols)
+            for r in rows:
+                w.writerow([source.name] + [r[c] for c in cols])
+        print(f"wrote {len(rows)} rows to {out}  ({args.what})")
         return 0
 
     return 2
