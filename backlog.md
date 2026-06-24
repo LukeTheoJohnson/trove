@@ -33,6 +33,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | grabaseat  | `sources/grabaseat.py` | ORIGIN-DEST     | **ephemeral** (per-route cheapest airfare, moves daily, never archived) | **high** |
 | bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
 | petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
+| turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -90,6 +91,23 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **turners gate (2026-06-24, NZ used cars):** `turners.co.nz` robots is `User-agent: * / Allow: /`
+  (only a sitemap line) - no `/api` or search fence, no automation ban. The cars listing is an
+  EPiServer/Optimizely page behind an F5/BIG-IP edge, but the result grid is **server-rendered**: each
+  `<div class="product-block block-type-(buy-now|live-auction)" data-goodnumber="...">` carries
+  schema.org/Car microdata + an `analytics-seg-info` span with
+  `data-seg-{goodNumber,make,model,year,price,isDiscounted,responsibleBranch,salesChannel}`, plus a
+  visible "Was $X / You Save $Y" and an odometer. **Page-parse = sanctioned -> trove**, no private call.
+  Key findings: (1) the same `analytics-seg-info` span + schema.org itemprops appear on **both** the
+  listing card and the single-car detail page, so one extractor serves both - the detail page even adds
+  `data-seg-salesChannel="BuyNow"` as the clean auction/buy-now flag. (2) There is **no by-id endpoint**:
+  `/-/-/<goodnumber>` soft-404s ("Page Not Found"); the real detail URL needs the make/model slug, so
+  the **join key is the detail path tail** `make/model/goodnumber` (grabone's pattern) and `fetch` GETs
+  `/Cars/Used-Cars-for-Sale/{id}` directly. (3) `?pagesize=110` returns 110 cards in one polite GET;
+  keyword query params (`keyword=/searchfor=/q=`) are **ignored**, so `search` filters client-side
+  (make-path first, fall back to the latest 110). (4) Detail-page odometer must be read from the
+  `itemprop="mileageFromOdometer" ... content="196500"` microdata - a loose `N km` text scan grabs a
+  fuel-economy figure instead. is_deal = discounted below RRP (`isDiscounted=True` and was>price).
 - **petrolspy gate (2026-06-23, NZ fuel - fills the Gaspy gap):** `petrolspy.com.au` (covers AU+NZ)
   robots disallows only `/admin-1/`. The web map calls a keyless service
   `webservice-1/station/box?neLat=&neLng=&swLat=&swLng=` (gzipped; needs `--compressed`/Accept-Encoding)
