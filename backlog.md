@@ -34,6 +34,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
 | petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
+| eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -91,6 +92,41 @@ high on this column.
 - **pokemontcg gate (2026-06-23):** `api.pokemontcg.io/robots.txt` empty; marketing-site robots is
   Cloudflare content-signal *vocabulary* only (no `no`, no `/api` Disallow). Sanctioned keyless API.
   Lesson: Cardmarket `lowPrice` is a damaged-copy outlier; use `lowPriceExPlus` as the clean EUR floor.
+- **eventcinemas gate (2026-06-24, NZ cinema seats):** `eventcinemas.co.nz` robots disallows only
+  `/ticketing/` + `/tickets/` (the seat-picker/checkout flow) - **not** the session listing. The site
+  is a legacy jQuery/.NET app; its "session times" view calls a keyless, page-called JSON endpoint
+  `GET /Cinemas/GetSessions?cinemaIds=<id>&date=<YYYY-MM-DD>` (found by grepping the `site-*.js` bundle
+  for the `EVO.sessions.getSessions` AJAX url) returning every movie -> `CinemaModels` -> `Sessions`
+  for that day, each session carrying a live **`SeatsAvailable`** count. Keyless + page-called +
+  not-fenced = sanctioned -> **trove**. Key findings: (1) **no price in the feed** (ticket prices live
+  behind the fenced `/ticketing/` flow) - so this is a pure *scarcity* tracker: `qty` = seats
+  remaining, "deal" = a session near sellout (<= 20 seats). Mirrors bookme. (2) GetSessions is keyed
+  by cinema+date with no by-session-id endpoint, so the **join key is composite** `cinemaId:date:
+  sessionId` (turners/grabone trick) - fetch/poll rebuild the query from the id. (3) `--cc <id>` picks
+  the cinema (default 502 = Queen Street, Auckland), `search --date` picks the day; cinema ids come
+  from the response itself (`CinemaModels[].Id/Name`). The `_Client` memoizes per (cinema,date) so a
+  multi-session poll of one day is a single GET.
+- **DOC bookings (Great Walks hut/campsite availability)** `[skipped] 2026-06-24` -
+  `booking.doc.govt.nz` **rejects the TLS handshake itself** (`SSLV3_ALERT_HANDSHAKE_FAILURE` on both
+  TLS 1.2 and 1.3, across openssl/curl/Python, while `www.doc.govt.nz` fetches fine) = a
+  TLS-fingerprint (JA3) WAF deliberately refusing non-browser clients at the transport layer. Reading
+  it would need browser-TLS impersonation (curl_cffi/uTLS) = detection-evasion of an anti-bot control,
+  off-brand. Same call as the Noel Leeming WAF. Hard skip. (New abstracted skip pattern: a host that
+  *refuses the TLS handshake* for non-browser clients is an edge fence, even with no robots/HTTP block.)
+- **ChargeNet NZ (EV-charger availability)** `[skipped] 2026-06-24` - `map.charge.net.nz` (Vite/React
+  SPA, no robots fence) calls a keyless JSON API `https://api.charge.net.nz/v1/sites` (base host built
+  in-bundle as `window.location.hostname` with the first label swapped to `api`). But the endpoint's
+  **entire universe is 3 placeholder sites** (all `UnderConstruction`/`Planned`, owner "Firstlight
+  Network Ltd"): unfiltered = 3, and `?status=<SiteStatus>` only narrows (a no-op once the enum value
+  is valid; the param binds a single `Optional<SiteStatus>` by enum NAME, so a CSV or a non-member
+  400s). The real ~300-charger network is baked into **Mapbox vector tiles** (`mapbox://tiles/`) with
+  live status over an **SSE stream** (`/v1/sites/{id}/chargers/outlets/stream`) - neither is a clean
+  list-and-track JSON source. Shipping it would be a 3-site stub. Skip. (Lesson: confirm the keyless
+  JSON endpoint actually *holds the bulk data* before building - a map's pins can live in a tileset,
+  not the API.)
+- **InterCity coach fares** `[skipped] 2026-06-24` - `intercity.co.nz` robots `Disallow: /book/`, and
+  the fare-search/booking data lives exactly under `/book/`. The skill's "robots fences the data path
+  you'd hit" skip trigger. Skip rather than push a fenced booking path.
 - **turners gate (2026-06-24, NZ used cars):** `turners.co.nz` robots is `User-agent: * / Allow: /`
   (only a sitemap line) - no `/api` or search fence, no automation ban. The cars listing is an
   EPiServer/Optimizely page behind an F5/BIG-IP edge, but the result grid is **server-rendered**: each
