@@ -37,6 +37,9 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
 | geonet     | `sources/geonet.py`    | publicID        | archived (GeoNet catalogue + `/quake/history` revisions) | low-med (DS capability flex) |
 | metno      | `sources/metno.py`     | city slug or `lat,lon` | **ephemeral** (forecast-*as-issued*: the free tier archives past *actuals* but never past *forecasts*, so the forecast-drift series is un-rebuildable) | **high** |
+| volcano    | `sources/volcano.py`   | volcanoID       | archived (GeoNet VAL bulletins) | low-med (NZ geohazard suite w/ geonet; clean state series) |
+| nzski      | `sources/nzski.py`     | resort data-slug | **ephemeral** (daily base depth + lifts/trails/open-closed churn, overwritten through the day, gone at season end; never archived) | **high** |
+| gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -86,6 +89,38 @@ high on this column.
 
 ## Notes
 
+- **NZ-specific batch (2026-06-27, "3 drops to round out the repo"):** three distinct NZ genres
+  trove lacked - geohazard alert state, ski recreation, and hydrology/flood.
+  - **volcano** - GeoNet `/volcano/val` (sibling of `geonet`, same sanctioned keyless network; robots
+    fences only marketing paths). One GET returns all 12 NZ volcanoes with `level` (0-5 VAL), `acc`
+    aviation colour, `activity`/`hazards`. Join key = `volcanoID`. `price_cents`=level*100 so `drops`=a
+    de-escalation; is_deal "unrest"=level>=1. (At build: Whakaari/White Island L2 Yellow, Ruapehu L1.)
+  - **nzski** - NZSki snow reports (Coronet Peak / The Remarkables / Mt Hutt). Recon chain: resort
+    weather-report pages are **Webflow + Alpine.js** (`x-text="snow.baseMin"`), data fetched by
+    `weather-app.iife.js` as `https://webcams-<...>.azurefd.net/${slug}-data.json` where `${slug}` is a
+    **mountain slug read from the page `<body>` class** ("Unrecognized mountain slug on <body>" was the
+    tell). Slugs are irregular: `coronet-peak-winter`, `the-remarkables`, `mt-hutt` (probe per resort).
+    Feed is **UTF-8-BOM JSON** (decode `utf-8-sig`; `/webcams-json/<Resort>.json` is a *different* feed -
+    webcam images only, a red herring). Page-called + keyless + robots-clean = sanctioned -> trove.
+    Join key = the data-slug. `price_cents`=base depth cm*100 (`drops`=melt); `qty`=lifts open;
+    is_deal "open"=`MountainStatus`=="Open".
+  - **gwrivers** - Greater Wellington Hilltop server (`hilltop.gw.govt.nz/Data.hts`), official council
+    open hydrology, **no robots.txt (404)** = unfenced, keyless. `Request=SiteList` -> ~3335 gauge sites
+    (join key = site name); `Request=GetData&Site=&Measurement=Flow&TimeInterval=PT24H/Now` ->
+    `<E><T/><I1/></E>` 5-min series. **Gotcha: Hilltop does NOT decode `+` for spaces - `requests`
+    encodes spaces as `+` and the server reads `Hutt+River+at+Taita+Gorge` literally ("No data for
+    site"). Build the query with `urlencode(..., quote_via=quote)` so spaces become `%20`.** New genre =
+    flood watch: the alerting event is a *rise* but the core only flags *drops*, so the 24h trend is
+    computed at fetch and stored as `rising` (is_deal "rising"=latest>=1.5x the 24h-ago value); the
+    core's `drops`=a river receding. (At build: Hutt River at Taita Gorge flow 47->341 m3/s, +620% =
+    a live flood.) Page-parse/XML = sanctioned -> trove.
+  - **Skipped this batch:** **Open-Meteo** (api host robots-fenced - see metno note); **Vector outages**
+    (its ArcGIS Hub `data-vector.opendata.arcgis.com` has *zero* outage datasets - the live map uses a
+    bundled/private feed = would be hoard, not trove); **Safeswim** (beach water quality - ideal genre,
+    but the live feed is hidden in Next.js chunks behind `maps.safeswim.org.nz`, 404 on every probed
+    path; heavy RE, possibly private - parked). **GeoNet felt-intensity** (`/intensity?type=reported`)
+    works keyless but was rejected as a poor model fit: it's an aggregated MMI heatmap with **no stable
+    join key** (grid points shift), unlike volcano/quake by-id.
 - **metno gate (2026-06-27, weather forecast-drift - "something different"):** picked deliberately
   off-genre - everything else in trove hoards a *present-state* value (price/seats/fuel/magnitude);
   this hoards a **prediction about the future and its revision**. First pick **Open-Meteo** was
