@@ -62,6 +62,7 @@ sources concatenate cleanly into one hoard. `obs`/`latest` columns:
 | scryfall | `--cc` = `usd`\|`eur`\|`tix` (nonfoil) | `foil_cents` | `set`, `rarity`, `released` |
 | pokemontcg | `--cc` = `usd` (TCGplayer market) \| `eur` (Cardmarket trend) | `denom`, `variant`, `low_cents`, `mid_cents`, `high_cents`, `avg30_cents`, `avg7_cents`, `updated` | `set`, `series`, `released` |
 | ygoprodeck | `--cc` = tracked venue (`tcgplayer` default) | `denom`, `tcgplayer_c`, `cardmarket_c`, `ebay_c`, `amazon_c`, `coolstuffinc_c` | `attribute`, `atk`, `def`, `level`, `archetype`, `sets` |
+| metno | **not money** — `price_cents` = upcoming-day forecast **high** in centi-degrees C (22.0C -> 2200), so `drops` = a forecast that *cooled*; `qty` = that day's forecast rain in tenths of a mm | `high_c`, `low_c`, `precip_mm`, `symbol`, `wind_ms`, `target_date`, `issued` | `lat`, `lon`, `name`, `issued`, `target_date`, `current_c`, `current_symbol`, `outlook`, `url` |
 
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored

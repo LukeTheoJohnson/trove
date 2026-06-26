@@ -36,6 +36,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
 | geonet     | `sources/geonet.py`    | publicID        | archived (GeoNet catalogue + `/quake/history` revisions) | low-med (DS capability flex) |
+| metno      | `sources/metno.py`     | city slug or `lat,lon` | **ephemeral** (forecast-*as-issued*: the free tier archives past *actuals* but never past *forecasts*, so the forecast-drift series is un-rebuildable) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -85,6 +86,33 @@ high on this column.
 
 ## Notes
 
+- **metno gate (2026-06-27, weather forecast-drift - "something different"):** picked deliberately
+  off-genre - everything else in trove hoards a *present-state* value (price/seats/fuel/magnitude);
+  this hoards a **prediction about the future and its revision**. First pick **Open-Meteo** was
+  **skipped**: `open-meteo.com` robots is `Allow: /` but the data host **`api.open-meteo.com` robots is
+  `Disallow: /`** - the exact endpoint fenced, same shape as the CheapShark skip (keyless+documented but
+  robots-fenced data path). Re-rolled to **MET Norway** (api.met.no, the backend behind the yr.no
+  consumer weather site): `api.met.no/robots.txt` `Disallow: /weatherapi/*` applies **only to
+  Googlebot** (anti-index); for `User-agent: *` the path is fully allowed. Keyless, global, CC-BY 4.0 /
+  NLOD, official = sanctioned -> trove. Gate is just an **identifying User-Agent** (generic UAs get
+  403; MET's ToS requires app+contact) + respect the `Expires` header. `yr.no` robots `Disallow: /`s a
+  list of AI-*training* crawlers (ClaudeBot/GPTBot/CCBot/...) - the ygoprodeck lesson: that's not a ban
+  on a personal API client with an honest UA doing no training/redistribution; posture honoured, not
+  impersonated. Key findings: (1) `GET /weatherapi/locationforecast/2.0/compact?lat=&lon=` returns
+  `properties.meta.updated_at` (the **forecast-run time** = the drift anchor) + `.units` +
+  `.timeseries[]` (`instant.details.air_temperature/wind_speed/...` + `next_1_hours/6_hours/12_hours`
+  with `summary.symbol_code` + `details.precipitation_amount`). (2) Scalar reuse like geonet:
+  `price_cents` = upcoming-day **high** in centi-degrees C (so `drops` = a forecast that *cooled*),
+  `qty` = that day's rain in tenths-mm, is_deal "fineday" = high>=20C & <1mm. Every obs stamps
+  `target_date`+`issued`, so the forecast-evolution series is fully in the hoard and **un-rebuildable**
+  elsewhere = genuine high value. (3) No place-name lookup in the API (and the obvious geocoder host
+  `api.open-meteo.com` is robots-fenced), so discovery rides a **curated city list** (slug or
+  arbitrary `lat,lon`); the id is used verbatim as the join key so the watch key always matches the
+  stored item. (4) Cosmetic quirk inherited from the scalar reuse: `money()` renders the centi-degree
+  high as dollars in the two core-hardcoded spots (watch-list + poll DROP line) - same as geonet's
+  `$3.11` magnitude; the rich displays show proper `C`. (5) Times are **UTC** (no tz in payload) so
+  "upcoming day" + the midday symbol are UTC-defined - an NZ winter high can carry a `_night` symbol;
+  honest and harmless for the drift hoard.
 - **geonet gate (2026-06-27, NZ earthquakes - the DS-friendly ask):** `api.geonet.org.nz` robots
   disallows only marketing paths (`/p/ /news/ /assets/ /network/`) - never `/quake`. GeoNet is the
   official GNS Science / Toka Tu Ake EQC network and ships a keyless, documented, CC-BY 3.0 NZ GeoJSON
