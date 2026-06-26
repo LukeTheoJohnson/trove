@@ -19,6 +19,9 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 
 ## Ported sources
 
+Grouped by genre (same four sections as the `--help` listing and the data dictionary).
+
+### games / media / collectibles
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | steam      | `sources/steam.py`     | appid      | archived (SteamDB)               | low (PoC) |
@@ -27,14 +30,26 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | scryfall   | `sources/scryfall.py`  | card id    | archived (MTGGoldfish)           | low (PoC) |
 | pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
+
+### fuel & electricity
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
 | spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
+| petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
+
+### deals, fares & listings
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
 | grabone    | `sources/grabone.py`   | deal URL path   | **ephemeral** (daily-deal catalog churn + RRP/discount, never archived) | **high** |
 | grabaseat  | `sources/grabaseat.py` | ORIGIN-DEST     | **ephemeral** (per-route cheapest airfare, moves daily, never archived) | **high** |
 | bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
-| petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
+
+### weather, environment & geohazard
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
 | geonet     | `sources/geonet.py`    | publicID        | archived (GeoNet catalogue + `/quake/history` revisions) | low-med (DS capability flex) |
 | metno      | `sources/metno.py`     | city slug or `lat,lon` | **ephemeral** (forecast-*as-issued*: the free tier archives past *actuals* but never past *forecasts*, so the forecast-drift series is un-rebuildable) | **high** |
 | volcano    | `sources/volcano.py`   | volcanoID       | archived (GeoNet VAL bulletins) | low-med (NZ geohazard suite w/ geonet; clean state series) |

@@ -20,14 +20,27 @@ import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT, "data")
-SOURCES = ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "spainfuel", "em6", "grabone", "grabaseat", "bookme", "petrolspy", "turners", "eventcinemas", "geonet", "metno", "volcano", "nzski", "gwrivers")
+
+# Sources grouped by genre. This grouping is the single source of truth: it drives
+# the `--help` listing, and the flat SOURCES tuple (membership + dispatch) is derived
+# from it. Adding a source = drop its name into the right group below.
+SOURCE_GROUPS = {
+    "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck"),
+    "fuel & electricity":               ("spainfuel", "petrolspy", "em6"),
+    "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas"),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers"),
+}
+SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)
 
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
-        print("sources:", ", ".join(SOURCES))
+        print("sources:")
+        w = max(len(label) for label in SOURCE_GROUPS)
+        for label, names in SOURCE_GROUPS.items():
+            print(f"  {label:<{w}}  {', '.join(names)}")
         return 0
     name = argv[0]
     if name not in SOURCES:
