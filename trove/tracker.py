@@ -29,6 +29,8 @@ class Source:
     cc_default = "nz"          # store/currency code; each source interprets it
     deal_label = "deal"        # noun for the `deals` command + poll tag
     search_args: list[tuple] = []   # extra argparse args for `search`: [("--entity", {...})]
+    search_limit_default = 15   # default --limit for `search`; raise it for a bounded listing (e.g. a cinema-day)
+    search_header = f"{'PRICE':>8}  NAME"   # header body after the id column; pair with search_row
 
     # -- hooks a source implements --------------------------------------- #
     def client(self, args):
@@ -54,6 +56,10 @@ class Source:
     def deal_line(self, item: Item, obs: Obs) -> str:
         return f"{money(obs.price_cents)}  {item.name}"
 
+    def search_row(self, item: Item, obs: Obs | None) -> str:
+        """Body of one `search` result line, after the id column. Override for a richer listing."""
+        return f"{money(obs.price_cents) if obs else '?':>8}  {item.name}"
+
     def format_item(self, item: Item, obs: Obs | None) -> list[str]:
         lines = [f"  subtitle : {item.subtitle}", f"  category : {item.category}"]
         if obs:
@@ -78,7 +84,7 @@ def run_cli(source: Source, argv: list[str], data_dir: str) -> int:
     sub.add_parser("doctor", help="check the API is reachable")
     sp = sub.add_parser("search", help="search the source")
     sp.add_argument("term")
-    sp.add_argument("--limit", type=int, default=15)
+    sp.add_argument("--limit", type=int, default=source.search_limit_default)
     for flag, kw in source.search_args:
         sp.add_argument(flag, **kw)
     sp = sub.add_parser("item", help="look up one item"); sp.add_argument("item_id")
@@ -113,9 +119,11 @@ def run_cli(source: Source, argv: list[str], data_dir: str) -> int:
             db.log_obs(item.id, obs, "search")
         if not rows:
             print("no results."); return 0
-        print(f"{source.id_label:>12}  {'PRICE':>8}  NAME")
+        print(f"{source.id_label:>12}  {source.search_header}")
         for item, obs in rows[: args.limit]:
-            print(f"{str(item.id):>12}  {money(obs.price_cents) if obs else '?':>8}  {item.name}")
+            print(f"{str(item.id):>12}  {source.search_row(item, obs)}")
+        if len(rows) > args.limit:
+            print(f"... {len(rows) - args.limit} more not shown ({len(rows)} total; raise --limit)")
         return 0
 
     if args.cmd == "item":

@@ -118,6 +118,8 @@ class EventCinemasSource(Source):
     cc_default = "502"          # cinema id; --cc <id> picks another (502 = Queen Street, Auckland)
     deal_label = "sellout risk"  # a session close to selling out
     search_args = [("--date", {"default": None, "help": "session date YYYY-MM-DD (default today)"})]
+    search_limit_default = 300  # a cinema-day is bounded (~60 sessions); list the whole day, don't truncate
+    search_header = f"{'TIME':>5}  {'SCREEN':<11}  {'SEAT':>4}  MOVIE"
 
     def client(self, args):
         return _Client()
@@ -156,6 +158,14 @@ class EventCinemasSource(Source):
         seats = f"{q} seats left  " if q is not None else ""
         when = (obs.flags.get("start") or "").replace("T", " ")
         return f"{seats}{when}  {item.name}".strip()
+
+    def search_row(self, item, obs):
+        """time + screen + seats + movie, so `search` lists a whole day without a per-session item call."""
+        e = item.extra
+        q = obs.qty if obs else None
+        seats = "SOLD" if q == 0 else (str(q) if q is not None else "?")
+        screen = e.get("screen_type") or "Original"
+        return f"{_hhmm(e.get('start', '')):>5}  {screen:<11}  {seats:>4}  {e.get('movie', '')}"
 
     def format_item(self, item, obs):
         e = item.extra
