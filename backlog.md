@@ -35,6 +35,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 | petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
+| geonet     | `sources/geonet.py`    | publicID        | archived (GeoNet catalogue + `/quake/history` revisions) | low-med (DS capability flex) |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -83,6 +84,25 @@ high on this column.
   `/search` disallow.)
 
 ## Notes
+
+- **geonet gate (2026-06-27, NZ earthquakes - the DS-friendly ask):** `api.geonet.org.nz` robots
+  disallows only marketing paths (`/p/ /news/ /assets/ /network/`) - never `/quake`. GeoNet is the
+  official GNS Science / Toka Tu Ake EQC network and ships a keyless, documented, CC-BY 3.0 NZ GeoJSON
+  API = sanctioned -> trove. `GET /quake?MMI=<n>` returns the recent feed (<=100) at/above a Modified
+  Mercalli Intensity floor; `GET /quake/{publicID}` is a clean *by-id* endpoint (no composite key needed,
+  unlike turners/grabone). Accept header is `application/vnd.geo+json;version=2`. Key findings: (1) the
+  scalar mapping reuses `price_cents` = round(magnitude * 100) (centi-magnitude, em6/petrolspy pattern)
+  and `qty` = MMI, so the `drops` command = a quake *downgraded* on review (preliminary over-estimate
+  corrected down - a real DS signal); is_deal = M>=4.0 ("notable"). (2) The ephemeral angle is the
+  **preliminary -> reviewed `quality` drift** (`best`/`preliminary` -> `reviewed`, or `deleted` as a
+  false trigger) - the single `/quake/{id}` always returns the *current* solution, so polling builds our
+  own cross-quake magnitude/quality series. Honest hoard value is **low-med**: GeoNet archives both the
+  catalogue and `/quake/history/{id}`, so the revisions are rebuildable - this source's draw is the
+  data-science fit (the user's explicit ask) and the convenient unified series, not un-rebuildability.
+  (3) `/volcano/val` (current volcanic alert levels) and `/intensity?type=reported` (live felt reports,
+  genuinely ephemeral) are sibling keyless feeds left for a future extension; kept the source thin on the
+  one clean dimension (quakes).
+
 
 - **The hoard only compounds if `poll` runs on a schedule** — which is exactly the gate
   `/daily-tool-drop` won't cross without a fresh explicit OK. Arming polite scheduled polling per
