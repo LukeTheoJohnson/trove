@@ -56,6 +56,11 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | nzski      | `sources/nzski.py`     | resort data-slug | **ephemeral** (daily base depth + lifts/trails/open-closed churn, overwritten through the day, gone at season end; never archived) | **high** |
 | gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
 
+### aviation
+| source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|--------------------------|------------|----------------------------------|-------------|
+| chcflights | `sources/chcflights.py`  | dir:type:flightNo:scheduled | **ephemeral** (a flight's estimate/gate/status drift from schedule in the hours before it operates; the board drops it once it operates and no public archive keeps the minute-by-minute progression) | **high** |
+
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
 high on this column.
@@ -182,6 +187,31 @@ high on this column.
   one clean dimension (quakes).
 
 
+- **chcflights gate (2026-06-27, NZ aviation - "a new category, ideally nz specific"):** opened a
+  genuinely new genre (aviation - none of the four existing genres covers transport). Airport gate
+  sweep: **Auckland** sits behind a **Cloudflare "Just a moment..." JS challenge on every request**
+  incl. `/robots.txt` (interactive anti-bot wall = edge fence, same skip class as the Noel Leeming
+  WAF / DOC TLS refusal) -> **skip**; **Wellington** robots `Disallow: /flights/arrivals/` +
+  `/flights/departures/` (the exact data paths fenced) -> **skip**; **Christchurch** robots is wide
+  open (`User-agent: *`, only a Sitemap line, zero Disallow) -> proceed. The CHC arrivals/departures
+  board (`/travellers/flights/arrivals-and-departures/`) is a Vue widget; grepping its `main-*.js`
+  bundle for the call site gave `buildUrl: "/api/flights?maxFlights=&flightDirection=&flightType="`
+  - a keyless, same-origin, page-called JSON endpoint = sanctioned -> **trove**. Key findings: (1)
+  the **param values are words, not codes**: `flightDirection=Arrive|Depart`, `flightType=
+  International|Domestic` (read from the page's `data-flight-direction="Arrive"` attrs + the radio
+  `value="International"`). First probe with `A`/`I` returned 200 but the *default* board (arrivals
+  and departures looked identical) - the server silently falls back on an unrecognised value, the
+  tell that the params were wrong. (2) flight objects carry **no direction/type field** (so the
+  server *must* filter by quadrant) and **no by-flight endpoint**, so the join key is composite
+  `dir|type|flightNo|scheduled` (eventcinemas/turners trick) - the stable `scheduled` string
+  disambiguates a recurring flight number and lets fetch/poll rebuild the query. (3) **no price in
+  aviation** -> tracked scalar = *delay minutes* (`estimate - scheduled`, signed, wrapped ±12h; `0`
+  when no estimate = expected on time) in `price_cents`, so the core's `drops` = a flight that
+  *recovered*; is_deal "delay" = delayed ≥15 min or cancelled. money() cosmetically renders the delay
+  as dollars in the 2 core-hardcoded spots (geonet/metno precedent). (4) `scheduled`/`estimateActual`
+  are clock strings with a weekday prefix (`"Sat 7:24 PM"`) and **no date/tz** - parse time-of-day
+  only and wrap the diff; the board only spans ~a day so this is safe. Lift image + codeshares
+  (`flightNumbers[1:]`) ride in extra.
 - **The hoard only compounds if `poll` runs on a schedule** — which is exactly the gate
   `/daily-tool-drop` won't cross without a fresh explicit OK. Arming polite scheduled polling per
   source is a conscious, per-source decision (Luke approves).

@@ -91,6 +91,11 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | nzski | **not money** — `price_cents` = headline base depth cm * 100, so `drops` = the base *melting*; `qty` = lifts open count | `base_cm`, `base_min`, `base_max`, `season_total`, `last7days`, `lifts_open`, `lifts_total`, `trails_open`, `trails_total`, `status`, `temp_high`, `temp_low`, `updated` | `slug`, `updated`, `road_status`, `chain_status`, `weather`, `url` |
 | gwrivers | **not money** — `price_cents` = latest **Flow** m3/s * 100 (centi-cumecs) **or** Stage mm * 100 (per-site consistent; read `flags.measurement`/`unit`), so `drops` = a river *receding*; deal `rising` is precomputed in flags | `measurement`, `unit`, `value`, `value_24h_ago`, `max_24h`, `min_24h`, `change_24h`, `pct_change_24h`, `rising`, `latest_time` | `measurement`, `unit`, `url` |
 
+### aviation
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| chcflights | **not money** — `price_cents` = **delay in minutes** (estimate − scheduled; negative = early, `0` = currently expected on time), so `drops` = a flight that *recovered* (delay shrank); deal = delayed ≥ 15 min or cancelled. money() cosmetically renders the delay as dollars in the watchlist + poll DROP line only | `status`, `gate`, `estimate`, `scheduled`, `delay_min`, `cancelled`, `delayed`, `route`, `direction`, `type`, `last_updated` | `flight_no`, `codeshares`, `airline`, `airline_code`, `route`, `direction`, `type`, `scheduled`, `image_url` |
+
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored
 per-row, so record which `--cc` a source is polled with if you mix them downstream.
