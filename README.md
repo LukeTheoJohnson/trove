@@ -25,6 +25,9 @@ sources. State lives in `data/<source>.db`, one file per source.
 
 ## Sources
 
+19 sources in four genres (the same grouping `python trove.py` prints):
+
+### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | steam   | appid               | game price + discount %                | keyless Storefront API       |
@@ -33,14 +36,31 @@ sources. State lives in `data/<source>.db`, one file per source.
 | scryfall| card id             | MTG single price (usd/eur/tix) + foil deal | keyless official API     |
 | pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 | ygoprodeck| card id (passcode) | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API |
+
+### fuel & electricity
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
 | spainfuel | province-IDEESS     | per-station petrol price (G95E5) + below-area-avg deal | keyless MINETUR open-data REST |
+| petrolspy| station id          | NZ per-station fuel price (U91) + below-box-avg deal | keyless PetrolSpy map API |
 | em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
+
+### deals, fares & listings
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
 | grabone | deal URL path       | NZ daily-deal price + RRP/discount + live-until-expiry | page-published JSON-LD |
 | grabaseat| ORIGIN-DEST route   | Air NZ cheapest fare per route + standout-dip deal | keyless grabaseat fare API |
 | bookme  | activity URL path   | NZ activity deal price + spaces-remaining + steep-discount deal | SSR page-parse |
-| petrolspy| station id          | NZ per-station fuel price (U91) + below-box-avg deal | keyless PetrolSpy map API |
 | turners | car detail path     | NZ used-car asking price + RRP/discount over a listing's life | page-published microdata |
 | eventcinemas | cinemaId:date:sessionId | NZ cinema session seats-remaining ticking down to showtime (scarcity) | keyless GetSessions JSON |
+
+### weather, environment & geohazard
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| geonet  | publicID            | NZ earthquake magnitude + preliminary-to-reviewed quality drift (downgrade signal) | keyless GeoNet GeoJSON API |
+| metno   | city slug or lat,lon | weather forecast-drift: upcoming-day high + rain, as-issued (un-rebuildable) | keyless MET Norway Locationforecast |
+| volcano | volcanoID           | NZ volcanic alert level (0-5) + unrest escalation | keyless GeoNet VAL API |
+| nzski   | resort data-slug    | NZ ski-field base depth + lifts/trails open (open = deal) | page-called NZSki feed |
+| gwrivers| gauge site name     | NZ river flow/level + flood-onset rise (1.5x in 24h) | keyless GW Hilltop XML |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
