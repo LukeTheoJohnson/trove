@@ -124,5 +124,4 @@ local. Please respect the terms of service and `robots.txt` of each source.
 
 ## License
 
-MIT (see `LICENSE`). The license covers the code. The "data stays local" note above is about the
-cached price observations, not the source.
+MIT (see `LICENSE`). The license covers the code.
