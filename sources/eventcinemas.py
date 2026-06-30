@@ -26,17 +26,11 @@ from datetime import date as _date
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://www.eventcinemas.co.nz"
 SEATS_LOW = 20   # <= this many seats left (and > 0) = "selling fast"
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec) so a rare accented title degrades to '?' rather
-    than crashing a print - trove.py does not reconfigure stdout to UTF-8."""
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _today():
@@ -55,11 +49,11 @@ def _build(mv, cm, ses, cinema_id, date):
         return None
     seats = ses.get("SeatsAvailable")
     start = ses.get("StartTime", "")
-    stype = _safe(ses.get("ScreenTypeName") or ses.get("ScreenType") or "")
-    screen = _safe(ses.get("ScreenName") or "")
+    stype = safe(ses.get("ScreenTypeName") or ses.get("ScreenType") or "")
+    screen = safe(ses.get("ScreenName") or "")
     attrs = [a.get("Code") for a in ses.get("Attributes", []) if a.get("Code")]
-    mname = _safe(mv.get("Name", ""))
-    cname = _safe(cm.get("Name", ""))
+    mname = safe(mv.get("Name", ""))
+    cname = safe(cm.get("Name", ""))
     iid = f"{cinema_id}:{date}:{sid}"
 
     name = f"{mname} - {stype}" if stype else mname

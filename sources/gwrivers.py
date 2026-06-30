@@ -29,20 +29,16 @@ from urllib.parse import quote, urlencode
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source
+from trove.tracker import Source, safe
 
 UA = "trove/0.1 (+github.com/LukeTheoJohnson/trove)"
 HOST = "https://hilltop.gw.govt.nz/Data.hts"
 RISE_RATIO = 1.5    # latest >= 1.5x the value 24h ago = "rising" (flood-onset signal)
 
 
-def _safe(s):
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
-
-
 def _unit(u):
     """'m3/sec' (with a cubed glyph) -> ASCII 'm3/s'; pass mm etc through."""
-    u = _safe(u)
+    u = safe(u)
     return "m3/s" if "/sec" in u or "m\xb3" in (u or "") else u
 
 
@@ -75,7 +71,7 @@ def _report(site, measurement, unit, pts):
     change = round(v_now - v_first, 3)
     pct = round((v_now / v_first - 1) * 100, 1) if v_first else None
     rising = bool(v_first > 0 and v_now >= RISE_RATIO * v_first)
-    item = Item(site, name=_safe(site),
+    item = Item(site, name=safe(site),
                 subtitle=f"{measurement} {round(v_now, 2)} {unit}  ({'rising' if rising else 'steady/falling'})",
                 category=measurement,
                 extra={"measurement": measurement, "unit": unit, "url": HOST})

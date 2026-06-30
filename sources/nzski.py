@@ -24,7 +24,7 @@ import json
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source
+from trove.tracker import Source, safe
 
 UA = "Mozilla/5.0 (trove/0.1; +github.com/LukeTheoJohnson/trove)"
 BASE = "https://webcams-awb2e0ceg7cccsba.a02.azurefd.net"
@@ -39,10 +39,6 @@ RESORTS = {
     "mthutt":       ("Mt Hutt",        "mt-hutt"),
 }
 SLUG_NAMES = {slug: name for name, slug in RESORTS.values()}
-
-
-def _safe(s):
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _i(x):
@@ -67,7 +63,7 @@ def _count(rows, status="Open"):
 
 def _report(payload, slug, name):
     """One resort -data.json -> (Item, Obs)."""
-    name = _safe(payload.get("name") or name)
+    name = safe(payload.get("name") or name)
     snow = payload.get("snow") or {}
     base = snow.get("base") or {}
     base_cm = max([v for v in (_i(base.get("min")), _i(base.get("max"))) if v is not None] or [None]) \
@@ -75,16 +71,16 @@ def _report(payload, slug, name):
     temp = payload.get("temperature") or {}
     lifts, trails = payload.get("lifts") or [], payload.get("trails") or []
     lifts_open, trails_open = _count(lifts), _count(trails)
-    status = _safe(payload.get("MountainStatus", ""))
+    status = safe(payload.get("MountainStatus", ""))
     updated = payload.get("updatedAt", "")
     item = Item(slug, name=name,
                 subtitle=f"{status or '?'}  base {base_cm if base_cm is not None else '?'}cm  "
                          f"{lifts_open}/{len(lifts)} lifts",
-                category=_safe(payload.get("weatherIcon", "")),
+                category=safe(payload.get("weatherIcon", "")),
                 extra={"slug": slug, "updated": updated,
-                       "road_status": _safe(payload.get("RoadStatus", "")),
-                       "chain_status": _safe(payload.get("ChainStatus", "")),
-                       "weather": _safe(payload.get("weather", ""))[:160],
+                       "road_status": safe(payload.get("RoadStatus", "")),
+                       "chain_status": safe(payload.get("ChainStatus", "")),
+                       "weather": safe(payload.get("weather", ""))[:160],
                        "url": f"https://www.{'coronetpeak' if 'coronet' in slug else ('mthutt' if 'hutt' in slug else 'theremarkables')}.co.nz/weather-report"})
     obs = Obs(price_cents=(base_cm * 100 if base_cm is not None else None),
               qty=lifts_open,

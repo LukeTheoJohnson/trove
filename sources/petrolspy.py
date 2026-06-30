@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://petrolspy.com.au/webservice-1/station/box"
@@ -37,10 +37,6 @@ CITY_BOXES = {
     "wellington":   (-41.07, 174.99, -41.36, 174.66),
     "christchurch": (-43.40, 172.78, -43.64, 172.45),
 }
-
-
-def _safe(s):
-    return (s or "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _avg_cents(stations):
@@ -61,12 +57,12 @@ def _station(st, avg_cents):
     head = (prices.get(HEADLINE) or {}).get("amount")
     loc = st.get("location") or {}
     item = Item(str(st.get("id", "")),
-                name=_safe(st.get("name", "")) or _safe(st.get("brand", "")),
-                subtitle=_safe(st.get("address", "")),
-                category=_safe(st.get("brand", "")),
-                extra={"suburb": _safe(st.get("suburb", "")), "postcode": st.get("postCode", ""),
+                name=safe(st.get("name", "")) or safe(st.get("brand", "")),
+                subtitle=safe(st.get("address", "")),
+                category=safe(st.get("brand", "")),
+                extra={"suburb": safe(st.get("suburb", "")), "postcode": st.get("postCode", ""),
                        "lat": loc.get("y"), "lon": loc.get("x"), "open24": st.get("open24"),
-                       "country": st.get("country", ""), "brand": _safe(st.get("brand", ""))})
+                       "country": st.get("country", ""), "brand": safe(st.get("brand", ""))})
     obs = Obs(price_cents=(head if isinstance(head, (int, float)) else None),
               flags={"grade": HEADLINE, "board": board, "updated": updated,
                      "relevant": relevant, "area_avg": avg_cents, "unit": "cents/L"})

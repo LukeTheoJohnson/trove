@@ -29,18 +29,12 @@ from urllib.parse import urlsplit
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://new.grabone.co.nz"
 _LD = re.compile(r'<script type="application/ld\+json"[^>]*>(.*?)</script>', re.S)
 _INSTOCK = "https://schema.org/InStock"
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec); a Maori macron or rarer char degrades to '?'
-    instead of crashing a print, since trove.py does not reconfigure stdout to UTF-8."""
-    return (s or "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _cents(s):
@@ -77,11 +71,11 @@ def _from_listing(prod, region):
     offers = prod.get("offers") or {}
     price_c = _cents(offers.get("price"))
     was_c = _cents((offers.get("priceSpecification") or {}).get("price"))
-    brand = _safe((prod.get("brand") or {}).get("name", ""))
+    brand = safe((prod.get("brand") or {}).get("name", ""))
     item = Item(_id_of(prod.get("url")),
-                name=_safe(prod.get("name", "")),
+                name=safe(prod.get("name", "")),
                 subtitle=brand,
-                category=_safe(region),
+                category=safe(region),
                 extra={"url": prod.get("url"), "image": prod.get("image"), "merchant": brand,
                        "region": region})
     obs = Obs(price_cents=price_c, was_cents=was_c,
@@ -98,14 +92,14 @@ def _from_detail(prod):
     region = (seller.get("location") or {}).get("name", "")
     price_c = _cents(offers.get("price"))
     item = Item(_id_of(prod.get("url")),
-                name=_safe(prod.get("description", "")),
-                subtitle=_safe(seller.get("name", "")),
-                category=_safe(prod.get("category", "")),
+                name=safe(prod.get("description", "")),
+                subtitle=safe(seller.get("name", "")),
+                category=safe(prod.get("category", "")),
                 extra={"url": prod.get("url"), "image": prod.get("image"),
-                       "merchant": _safe(seller.get("name", "")), "region": _safe(region),
+                       "merchant": safe(seller.get("name", "")), "region": safe(region),
                        "valid_from": offers.get("validFrom")})
     obs = Obs(price_cents=price_c,
-              flags={"currency": offers.get("priceCurrency", "NZD"), "region": _safe(region),
+              flags={"currency": offers.get("priceCurrency", "NZD"), "region": safe(region),
                      "valid_through": offers.get("validThrough"),
                      "available": offers.get("availability") in (None, _INSTOCK),
                      "src": "detail"})

@@ -23,19 +23,13 @@ from __future__ import annotations
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source
+from trove.tracker import Source, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://api.geonet.org.nz"
 WWW = "https://www.geonet.org.nz"
 ACCEPT = "application/vnd.geo+json;version=2"
 UNREST_CENTS = 100   # level >= 1 = "unrest" (minor or greater; above background)
-
-
-def _safe(s):
-    """Fold to cp1252 so a macron'd title (Taupo/Taupo, Tongariro) degrades to '?' rather than
-    crashing a print - trove.py does not reconfigure stdout to UTF-8."""
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _int(x):
@@ -48,11 +42,11 @@ def _volcano(feat):
     coords = ((feat or {}).get("geometry", {}) or {}).get("coordinates") or [None, None]
     lon, lat = (list(coords) + [None, None])[:2]
     vid = str(p.get("volcanoID", ""))
-    title = _safe(p.get("volcanoTitle", "") or vid)
+    title = safe(p.get("volcanoTitle", "") or vid)
     level = _int(p.get("level"))
-    acc = _safe(p.get("acc", ""))
-    activity = _safe(p.get("activity", ""))
-    hazards = _safe(p.get("hazards", ""))
+    acc = safe(p.get("acc", ""))
+    activity = safe(p.get("activity", ""))
+    hazards = safe(p.get("hazards", ""))
     item = Item(vid, name=title, subtitle=f"alert level {level if level is not None else '?'} ({acc})",
                 category=acc,
                 extra={"lat": lat, "lon": lon, "activity": activity, "hazards": hazards,

@@ -23,6 +23,12 @@ def money(cents) -> str:
     return f"${cents / 100:.2f}"
 
 
+def safe(s) -> str:
+    """Fold to cp1252 (the Windows console codec) so an exotic char - a Maori macron, an accented
+    name - degrades to '?' rather than crashing a print; trove.py keeps the cp1252 console."""
+    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
+
+
 class Source:
     name = "source"
     id_label = "ID"

@@ -26,7 +26,7 @@ from urllib.parse import urlsplit
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://www.turners.co.nz"
@@ -42,12 +42,6 @@ _KM = re.compile(r'([0-9]{1,3}(?:,[0-9]{3})+|\d{4,})\s*km', re.I)
 _AVAIL = re.compile(r'availability"\s+content="(\w+)"', re.I)
 _FUEL = re.compile(r'itemprop="fuelType">([^<]+)<', re.I)
 _BODY = re.compile(r'itemprop="bodyType">([^<]+)<', re.I)
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec); a Maori macron or rarer char degrades to '?'
-    instead of crashing a print, since trove.py does not reconfigure stdout to UTF-8."""
-    return (s or "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _cents(s):
@@ -81,10 +75,10 @@ def _parse(frag, block_type, item_id=None):
     gn = _seg(frag, "goodNumber") or (item_id.split("/")[-1] if item_id else "")
     if not gn:
         return None
-    make, model = _safe(_seg(frag, "make")), _safe(_seg(frag, "model"))
+    make, model = safe(_seg(frag, "make")), safe(_seg(frag, "model"))
     year = _seg(frag, "year")
     price_c = _cents(_seg(frag, "price"))
-    branch = _safe(_seg(frag, "responsibleBranch"))
+    branch = safe(_seg(frag, "responsibleBranch"))
     channel = _seg(frag, "salesChannel") or (block_type or "").replace("-", "").title() or "BuyNow"
     discounted = _seg(frag, "isDiscounted").lower() == "true"
 
@@ -104,10 +98,10 @@ def _parse(frag, block_type, item_id=None):
     elif _KM.search(frag):
         odo = int(_KM.search(frag).group(1).replace(",", ""))
     avail = (_AVAIL.search(frag).group(1) if _AVAIL.search(frag) else "") or ""
-    fuel = _safe(_FUEL.search(frag).group(1)) if _FUEL.search(frag) else ""
-    body = _safe(_BODY.search(frag).group(1)) if _BODY.search(frag) else ""
+    fuel = safe(_FUEL.search(frag).group(1)) if _FUEL.search(frag) else ""
+    body = safe(_BODY.search(frag).group(1)) if _BODY.search(frag) else ""
 
-    name = _safe(" ".join(x for x in (year, make, model) if x)) or f"car {gn}"
+    name = safe(" ".join(x for x in (year, make, model) if x)) or f"car {gn}"
     item = Item(iid, name=name,
                 subtitle=f"{branch}{('  ' + format(odo, ',') + 'km') if odo is not None else ''}".strip(),
                 category=make,

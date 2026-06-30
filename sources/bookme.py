@@ -24,7 +24,7 @@ import re
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://www.bookme.co.nz"
@@ -42,8 +42,8 @@ _RATING = re.compile(r'stars-wrapper__rating">([0-9.]+)</span>'
 
 
 def _safe(s):
-    """Unescape entities then fold to cp1252 (trove.py keeps the cp1252 console)."""
-    return _html.unescape(s or "").strip().encode("cp1252", "replace").decode("cp1252")
+    """Unescape HTML entities, then fold to the cp1252 console codec (see trove.tracker.safe)."""
+    return safe(_html.unescape(s or ""))
 
 
 def _money_cents(dollars, cents):

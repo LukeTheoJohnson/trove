@@ -36,7 +36,7 @@ from datetime import datetime
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source
+from trove.tracker import Source, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://www.christchurchairport.co.nz"
@@ -45,12 +45,6 @@ MAX_FLIGHTS = 200      # one GET returns a whole board quadrant
 DELAY_MIN = 15         # minutes late (or cancelled) = "disruption"
 DIRS = {"arrivals": "Arrive", "departures": "Depart"}
 TYPES = {"intl": "International", "domestic": "Domestic"}
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec) so a rare non-latin city/airline degrades to '?'
-    rather than crashing a print - trove.py does not reconfigure stdout to UTF-8."""
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _clock(stamp):
@@ -99,10 +93,10 @@ def _build(fl, dir_val, type_val, last_updated):
     flight_no = nums[0]
     scheduled = fl.get("scheduled", "") or ""
     estimate = fl.get("estimateActual", "") or ""
-    status = _safe(fl.get("status", "") or "")
+    status = safe(fl.get("status", "") or "")
     gate = fl.get("gate")
-    route = " / ".join(_safe(a) for a in (fl.get("airports") or []))
-    airline = _safe(fl.get("airlineName", "") or "")
+    route = " / ".join(safe(a) for a in (fl.get("airports") or []))
+    airline = safe(fl.get("airlineName", "") or "")
     codeshares = nums[1:]
     delay = _delay(scheduled, estimate)
     cancelled = "cancel" in status.lower()

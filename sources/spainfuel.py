@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = ("https://sedeaplicaciones.minetur.gob.es"
@@ -34,12 +34,6 @@ GRADES = {
     "Precio Gases licuados del petróleo": "GLP",
 }
 HEADLINE = "Precio Gasolina 95 E5"   # the grade tracked as price_cents
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec) so an exotic char can't crash a print.
-    Spanish (Latin-1) survives unchanged; anything rarer degrades to '?' instead of raising."""
-    return (s or "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _eur(s):
@@ -58,8 +52,8 @@ def _avg_cents(stations):
 
 
 def _station(prov, st, avg_cents):
-    brand = _safe(st.get("Rótulo", ""))
-    loc = _safe(st.get("Localidad", ""))
+    brand = safe(st.get("Rótulo", ""))
+    loc = safe(st.get("Localidad", ""))
     board, milli = {}, {}
     for key, lab in GRADES.items():
         e = _eur(st.get(key))
@@ -69,11 +63,11 @@ def _station(prov, st, avg_cents):
     head = _eur(st.get(HEADLINE))
     item = Item(f"{prov}-{st.get('IDEESS', '')}",
                 name=f"{brand} ({loc})" if brand else loc,
-                subtitle=_safe(st.get("Dirección", "")),
+                subtitle=safe(st.get("Dirección", "")),
                 category=brand,
                 extra={"municipio": loc, "cp": st.get("C.P.", ""),
                        "lat": st.get("Latitud", ""), "lon": st.get("Longitud (WGS84)", ""),
-                       "horario": _safe(st.get("Horario", "")), "idees": st.get("IDEESS", "")})
+                       "horario": safe(st.get("Horario", "")), "idees": st.get("IDEESS", "")})
     obs = Obs(price_cents=(round(head * 100) if head is not None else None),
               flags={"grade": "G95E5", "board": board, "milli": milli, "area_avg": avg_cents})
     return item, obs

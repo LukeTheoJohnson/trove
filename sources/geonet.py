@@ -25,19 +25,13 @@ from __future__ import annotations
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source
+from trove.tracker import Source, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://api.geonet.org.nz"
 WWW = "https://www.geonet.org.nz"
 ACCEPT = "application/vnd.geo+json;version=2"
 NOTABLE_CENTS = 400   # magnitude >= 4.0 = "notable" (moderate quake, felt across a region)
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec) so a macron'd locality (Taupo/Taupo) degrades to
-    '?' rather than crashing a print - trove.py does not reconfigure stdout to UTF-8."""
-    return (str(s) if s is not None else "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _num(x):
@@ -63,7 +57,7 @@ def _quake(feat):
     lon, lat = (list(coords) + [None, None])[:2]
     pid = str(p.get("publicID", ""))
     mag, mmi, depth = _num(p.get("magnitude")), _num(p.get("mmi")), _num(p.get("depth"))
-    locality = _safe(p.get("locality", ""))
+    locality = safe(p.get("locality", ""))
     quality = p.get("quality", "")
     when = p.get("time", "")
     name = f"M{mag:.1f} {locality}" if mag is not None else (locality or pid)

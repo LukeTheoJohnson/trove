@@ -25,16 +25,10 @@ from __future__ import annotations
 
 from trove.db import Item, Obs
 from trove.session import retry_session
-from trove.tracker import Source, money
+from trove.tracker import Source, money, safe
 
 UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://api.em6.co.nz/ords/em6/data_api"
-
-
-def _safe(s):
-    """Fold to cp1252 (the Windows console codec) so an exotic char can't crash a print.
-    The 14 zone names are plain ASCII today; this just future-proofs against a macron'd name."""
-    return (s or "").strip().encode("cp1252", "replace").decode("cp1252")
 
 
 def _cents(price):
@@ -53,7 +47,7 @@ def _avg_cents(zones):
 def _zone(z, avg_cents):
     pc = _cents(z.get("price"))
     item = Item(str(z.get("grid_zone_id", "")),
-                name=_safe(z.get("grid_zone_name", "")),
+                name=safe(z.get("grid_zone_name", "")),
                 subtitle="NZ wholesale electricity spot ($/MWh)",
                 category="spot",
                 extra={"grid_zone_id": z.get("grid_zone_id")})
