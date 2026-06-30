@@ -1,24 +1,34 @@
 # trove
 
-A personal price and listing tracker across several sources, built on one shared core with thin
-per-source drivers. Search, watch, and poll any source over time for price drops and source-specific
-deal signals. Every fetch writes a timestamped row to a local SQLite cache, so the longer it runs the
-more it knows.
-
-Reading today's price is easy; anyone can do that. The point is that trove started caching three
-months ago, so it can tell you today's price is actually a bad one. The cache is the product: trove
-is a hoarding engine for proprietary, un-rebuildable time-series, and `export` hands the whole thing
+Search, watch, and poll data over time for price drops and source-specific signals. Every fetch writes a timestamped row to a local SQLite cache.
+The cache is the product: trove is a hoarding engine for proprietary, un-rebuildable time-series, and `export` hands the whole thing
 to your other tools as CSV (schema in [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md)).
 
+## Quick start with any source
+
+Every source uses the **same eight commands**
+
 ```bash
-python trove.py steam   search "elden ring"
-python trove.py discogs item 249504
-python trove.py itunes  watch add 1713845538
-python trove.py steam   poll        # log prices, report DROPs + sales
-python trove.py steam   deals        # on-sale now
-python trove.py steam   drops        # cheaper than first seen
-python trove.py steam   export       # dump the cached time-series to CSV (see DATA_DICTIONARY.md)
+python trove.py <source> doctor          # is the API reachable? (no args)
+python trove.py <source> search <query>  # find items — the LEFT COLUMN is the ID
+python trove.py <source> item <id>       # full detail for one item
+python trove.py <source> watch add <id>  # start tracking it
+python trove.py <source> poll            # re-check watched items, log history, flag drops/deals
+python trove.py <source> deals           # watched items that are "good" right now
+python trove.py <source> drops           # watched items now lower than first seen
+python trove.py <source> export          # dump the cached time-series to CSV
 ```
+```
+ The only
+things that vary per source are the **ID format** and whether `search` is free-text or a fixed list. 
+`search` comes in two flavours:
+- **Free-text** (steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, turners, bookme, grabone):
+  pass a real query — `search "elden ring"`.
+- **Fixed list** (em6, octopus, nzski, volcano, geonet, metno, gwrivers, chcflights): the source
+  already knows its set; pass `""` to list them all, or a word to filter — `search ""`.
+
+Not sure what a source wants? `python trove.py <source> -h` lists its commands and any extra flags
+(`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`).
 
 Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled
 sources. State lives in `data/<source>.db`, one file per source.
@@ -80,7 +90,7 @@ trove/
   db.py             TrackerDB + Item/Obs - the stateful spine (items, timestamped obs, watch)
   tracker.py        Source contract + run_cli (the generic command set lives here, once)
 sources/
-  steam.py          ~90 lines: endpoints + normalize payload -> Item/Obs + deal semantics
+  steam.py          ~90 lines: endpoints + normalise payload -> Item/Obs + deal semantics
   discogs.py
   itunes.py
   scryfall.py
@@ -110,12 +120,11 @@ Add the name to `SOURCES` in `trove.py`. The whole `doctor/search/item/watch/pol
 command set comes for free. Optionally override `refresh()` for a leaner poll endpoint (discogs does
 this: rich `/releases` for `item`, lean `/marketplace/stats` for `poll`).
 
-## Scope and etiquette
+## Etiquette
 
-Personal use. The bundled sources hit sanctioned, keyless APIs that the page or app itself calls.
+For personal use only. The bundled sources only hit sanctioned, keyless APIs that the page or app itself calls.
 `poll` spaces its requests, the `User-Agent` is real and descriptive, and the cached data stays
-local. Respect each source's terms of service and `robots.txt`. Any keys come from env vars, never
-hardcoded.
+local. Please respect the terms of service and `robots.txt` of each source.
 
 ## License
 
