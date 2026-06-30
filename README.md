@@ -18,7 +18,7 @@ python trove.py <source> deals           # watched items that are "good" right n
 python trove.py <source> drops           # watched items now lower than first seen
 python trove.py <source> export          # dump the cached time-series to CSV
 ```
-```
+
  The only
 things that vary per source are the **ID format** and whether `search` is free-text or a fixed list. 
 `search` comes in two flavours:
@@ -27,11 +27,8 @@ things that vary per source are the **ID format** and whether `search` is free-t
 - **Fixed list** (em6, octopus, nzski, volcano, geonet, metno, gwrivers, chcflights): the source
   already knows its set; pass `""` to list them all, or a word to filter — `search ""`.
 
-Not sure what a source wants? `python trove.py <source> -h` lists its commands and any extra flags
-(`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`).
-
-Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled
-sources. State lives in `data/<source>.db`, one file per source.
+`python trove.py <source> -h` lists its commands and any extra flags
+(`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`). Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled sources. The state lives in `data/<source>.db`, only one file per source.
 
 ## Sources
 
