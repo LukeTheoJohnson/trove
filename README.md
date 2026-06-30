@@ -25,7 +25,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 
 ## Sources
 
-20 sources in five genres (the same grouping `python trove.py` prints):
+21 sources in five genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -43,6 +43,7 @@ sources. State lives in `data/<source>.db`, one file per source.
 | spainfuel | province-IDEESS     | per-station petrol price (G95E5) + below-area-avg deal | keyless MINETUR open-data REST |
 | petrolspy| station id          | NZ per-station fuel price (U91) + below-box-avg deal | keyless PetrolSpy map API |
 | em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
+| octopus | GSP group (A-P)     | UK Agile Octopus half-hourly unit rate (p/kWh) + cheap-window/plunge deal | keyless official Octopus API |
 
 ### deals, fares & listings
 | source  | join key            | timeline value                         | API                          |

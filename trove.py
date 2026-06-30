@@ -26,7 +26,7 @@ DATA_DIR = os.path.join(ROOT, "data")
 # from it. Adding a source = drop its name into the right group below.
 SOURCE_GROUPS = {
     "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck"),
-    "fuel & electricity":               ("spainfuel", "petrolspy", "em6"),
+    "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus"),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas"),
     "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers"),
     "aviation":                         ("chcflights",),

@@ -37,6 +37,7 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | spainfuel  | `sources/spainfuel.py` | province-IDEESS | **ephemeral** (per-station forecourt price, never archived) | **high** |
 | petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
+| octopus    | `sources/octopus.py`   | GSP group (A-P) | archived (the official API serves the **full** realized half-hourly rate history, paginated) | low-med (PoC; UK retail twin of em6, completes the electricity genre both hemispheres) |
 
 ### deals, fares & listings
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -79,10 +80,17 @@ high on this column.
 2. ~~**Spain fuel — MINETUR API**~~ `[DONE 2026-06-23]` → `sources/spainfuel.py`. Keyless MINETUR REST
    (`sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes`); every station's per-grade prices. Built
    as the keyless realization of the fuel-pipeline intent after UK's keyless path closed (see #1).
-3. **Octopus Energy Agile tariff** `[HIGH]` — keyless public API of half-hourly unit rates; ephemeral
-   pricing that decays. Join key = tariff/region, timeline = the rate series. (NZ sibling already
-   shipped 2026-06-23: `em6` half-hourly wholesale spot — see Ported. Octopus is the UK *retail*
-   tariff cut of the same genre.)
+3. ~~**Octopus Energy Agile tariff**~~ `[DONE 2026-06-30, reclassified low-med]` → `sources/octopus.py`.
+   Keyless official Octopus REST API (`api.octopus.energy`, robots 404 = unfenced; sanctioned →
+   trove). Built as em6's UK *retail* twin: per-GB-region (GSP group A-P) half-hourly Agile unit rate
+   (p/kWh inc VAT) in `price_cents`, deal = at/below today's avg or a **negative** plunge rate.
+   **Hoard-value correction:** the backlog tagged this `[HIGH]`, but on inspection the
+   `standard-unit-rates/` endpoint serves the **full** realized history (31k+ periods, paginated), so
+   the realized series is *rebuildable* from the same API — closer to PoC/genre-completing than an
+   un-rebuildable moat (same class as steam/scryfall). Built anyway: clean sanctioned source, completes
+   the electricity genre across both hemispheres, and the negative-rate "plunge" signal is a fun
+   capability flex. The product code is renamed ~yearly so it's discovered at runtime (currently
+   `AGILE-24-10-01`).
 4. **Epic Games free-games rotation** `[MED-HIGH]` — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
    (the store's own backend, keyless). The weekly free-game rotation is ephemeral and barely archived.
    Deal = currently free. Gate Epic robots/ToS before recon.

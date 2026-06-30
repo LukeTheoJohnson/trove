@@ -72,6 +72,7 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | spainfuel | EUR cents/L for the headline grade G95E5 | `grade`, `board` (all grades cents/L), `milli`, `area_avg` | `municipio`, `cp`, `lat`, `lon`, `horario`, `idees` |
 | petrolspy | NZ/AU cents/L for the headline grade | `grade`, `board`, `updated`, `relevant`, `area_avg`, `unit` | `suburb`, `postcode`, `lat`, `lon`, `open24`, `country`, `brand` |
 | em6 | NZ wholesale electricity spot, $/MWh * 100 (so `drops` = price *falling*) | `unit` ($/MWh), `trading_period`, `timestamp`, `nat_avg` | `grid_zone_id` |
+| octopus | UK Agile unit rate, p/kWh inc VAT * 100 (centi-pence; can be **negative** = plunge pricing), so `drops` = electricity *getting cheaper*; deal = at/below today's avg or a negative rate. money() cosmetically renders the rate as dollars in the watchlist + poll DROP line only (em6/geonet precedent) | `unit` (p/kWh), `basis` (`headline` from search / `half_hour` from item+poll), `day_avg`, `next_rate`, `valid_from`, `valid_to`, `plunge` | `gsp_group` |
 
 ### deals, fares & listings
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
