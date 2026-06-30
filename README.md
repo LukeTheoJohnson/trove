@@ -20,15 +20,13 @@ python trove.py <source> export          # dump the cached time-series to CSV
 ```
 
  The only
-things that vary per source are the **ID format** and whether `search` is free-text or a fixed list. 
-`search` comes in two flavours:
-- **Free-text** (steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, turners, bookme, grabone):
-  pass a real query — `search "elden ring"`.
-- **Fixed list** (em6, octopus, nzski, volcano, geonet, metno, gwrivers, chcflights): the source
-  already knows its set; pass `""` to list them all, or a word to filter — `search ""`.
+things that vary per source are the **ID format** and whether `search` is free-text or a fixed list:
+
+- **Free-text**:pass a real query — `steam search "elden ring"`.
+- **Fixed list** (nzski): the source already knows its set; pass `""` to list them all, or a word to filter — `search ""`.
 
 `python trove.py <source> -h` lists its commands and any extra flags
-(`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`). Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled sources. The state lives in `data/<source>.db`, only one file per source.
+(`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`). 
 
 ## Sources
 
@@ -79,6 +77,7 @@ Every source runs the same commands: `doctor search item watch poll deals drops 
 source-specific search flags (e.g. `itunes search --entity album`).
 
 ## Architecture
+Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled sources.
 
 ```
 trove.py            entrypoint:  python trove.py <source> <command> [args]
