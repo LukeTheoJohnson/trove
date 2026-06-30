@@ -35,10 +35,9 @@ from __future__ import annotations
 from datetime import datetime
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://www.christchurchairport.co.nz"
 REFERER = HOST + "/travellers/flights/arrivals-and-departures/"
 MAX_FLIGHTS = 200      # one GET returns a whole board quadrant

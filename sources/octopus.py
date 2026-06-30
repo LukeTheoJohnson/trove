@@ -32,10 +32,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://api.octopus.energy/v1"
 
 # GB GSP (Grid Supply Point) groups -> region name. Agile exposes one tariff per group.

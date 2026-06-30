@@ -11,10 +11,9 @@ of the deal rule (but show in the price board)."""
 from __future__ import annotations
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://db.ygoprodeck.com/api/v7"
 VENUES = ("tcgplayer", "cardmarket", "ebay", "amazon", "coolstuffinc")
 DEAL_RATIO = 0.85  # one retailer at/under 85% of the other = an arbitrage buy

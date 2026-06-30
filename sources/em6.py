@@ -24,10 +24,9 @@ call; there is no free-text search). `--cc` is unused - the whole country is one
 from __future__ import annotations
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://api.em6.co.nz/ords/em6/data_api"
 
 

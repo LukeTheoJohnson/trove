@@ -17,10 +17,9 @@ brand/town substring, because the API has no free-text station search - it serve
 from __future__ import annotations
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = ("https://sedeaplicaciones.minetur.gob.es"
         "/ServiciosRESTCarburantes/PreciosCarburantes")
 

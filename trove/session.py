@@ -5,6 +5,10 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# The descriptive User-Agent every source sends. One honest identifier for the whole tool;
+# a source with a stricter requirement (metno's contact email, nzski's CDN) sets its own.
+UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
+
 
 def retry_session(extra_status: tuple[int, ...] = ()) -> requests.Session:
     """A requests.Session with backoff retries on transient failures.

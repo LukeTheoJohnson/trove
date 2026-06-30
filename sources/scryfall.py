@@ -4,10 +4,9 @@ usd (default) | eur | tix. The source 'deal' is the known MTG signal: foil <= no
 from __future__ import annotations
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://api.scryfall.com"
 # cc -> (nonfoil price key, foil price key)
 KEYS = {"usd": ("usd", "usd_foil"), "eur": ("eur", "eur_foil"), "tix": ("tix", None)}

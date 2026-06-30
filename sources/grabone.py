@@ -28,10 +28,9 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://new.grabone.co.nz"
 _LD = re.compile(r'<script type="application/ld\+json"[^>]*>(.*?)</script>', re.S)
 _INSTOCK = "https://schema.org/InStock"

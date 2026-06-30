@@ -9,10 +9,9 @@ from __future__ import annotations
 import os
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://api.pokemontcg.io/v2"
 # TCGplayer prices nest under a finish; pick the most representative one present.
 TCG_VARIANTS = ("normal", "holofoil", "reverseHolofoil", "1stEditionNormal",

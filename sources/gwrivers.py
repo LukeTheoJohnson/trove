@@ -28,10 +28,9 @@ import xml.etree.ElementTree as ET
 from urllib.parse import quote, urlencode
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, safe
 
-UA = "trove/0.1 (+github.com/LukeTheoJohnson/trove)"
 HOST = "https://hilltop.gw.govt.nz/Data.hts"
 RISE_RATIO = 1.5    # latest >= 1.5x the value 24h ago = "rising" (flood-onset signal)
 

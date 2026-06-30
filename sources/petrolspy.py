@@ -24,10 +24,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, money, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 BASE = "https://petrolspy.com.au/webservice-1/station/box"
 HEADLINE = "U91"   # regular unleaded - the grade tracked as price_cents
 

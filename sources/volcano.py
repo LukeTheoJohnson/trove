@@ -22,10 +22,9 @@ volcanoes (filter by a title substring); `item`/`poll` fetch one by `volcanoID`.
 from __future__ import annotations
 
 from trove.db import Item, Obs
-from trove.session import retry_session
+from trove.session import retry_session, UA
 from trove.tracker import Source, safe
 
-UA = "trove/0.1 (+https://github.com/LukeTheoJohnson/trove)"
 HOST = "https://api.geonet.org.nz"
 WWW = "https://www.geonet.org.nz"
 ACCEPT = "application/vnd.geo+json;version=2"
