@@ -122,8 +122,5 @@ class Em6Source(Source):
                     lines.append(f"  vs avg   : {(obs.price_cents - avg) / 100:+.2f} / MWh")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = Em6Source()

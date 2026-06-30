@@ -176,8 +176,5 @@ class EventCinemasSource(Source):
         lines.append(f"  booking  : {e.get('booking_url', '')}")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = EventCinemasSource()

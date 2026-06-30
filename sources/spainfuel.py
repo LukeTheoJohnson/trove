@@ -150,8 +150,5 @@ class SpainFuelSource(Source):
                 lines.append(f"  area avg : {avg / 100:.3f} EUR/L (G95E5)")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = SpainFuelSource()

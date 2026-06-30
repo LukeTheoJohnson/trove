@@ -148,8 +148,5 @@ class PetrolSpySource(Source):
                 lines.append(f"  box avg  : {money(avg)}/L ({HEADLINE})")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = PetrolSpySource()

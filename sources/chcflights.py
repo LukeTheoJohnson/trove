@@ -247,8 +247,5 @@ class ChcFlightsSource(Source):
             lines.append(f"  updated  : {f.get('last_updated', '')}")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = ChcFlightsSource()

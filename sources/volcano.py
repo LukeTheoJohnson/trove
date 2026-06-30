@@ -125,8 +125,5 @@ class VolcanoSource(Source):
         lines.append(f"  url         : {e.get('url', '')}")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = VolcanoSource()

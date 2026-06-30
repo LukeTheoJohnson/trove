@@ -240,8 +240,5 @@ class OctopusSource(Source):
                 lines.append("  PLUNGE   : negative price - you're paid to use power")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = OctopusSource()

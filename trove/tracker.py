@@ -73,7 +73,7 @@ class Source:
         return lines
 
     def poll_spacing(self) -> float:
-        return 0.4
+        return 0.5
 
 
 # -- the generic CLI -------------------------------------------------------- #

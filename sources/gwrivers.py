@@ -181,8 +181,5 @@ class GWRiversSource(Source):
         lines.append(f"  source      : Greater Wellington Hilltop  ({e.get('url', '')})")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = GWRiversSource()

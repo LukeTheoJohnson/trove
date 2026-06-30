@@ -192,8 +192,5 @@ class GrabOneSource(Source):
         lines.append(f"  url      : {item.extra.get('url', '')}")
         return lines
 
-    def poll_spacing(self):
-        return 0.5
-
 
 SOURCE = GrabOneSource()
