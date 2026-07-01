@@ -25,7 +25,7 @@ DATA_DIR = os.path.join(ROOT, "data")
 # the `--help` listing, and the flat SOURCES tuple (membership + dispatch) is derived
 # from it. Adding a source = drop its name into the right group below.
 SOURCE_GROUPS = {
-    "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck"),
+    "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "epic"),
     "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus"),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas"),
     "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers"),

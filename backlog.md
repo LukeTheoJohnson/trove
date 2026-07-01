@@ -30,6 +30,7 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | scryfall   | `sources/scryfall.py`  | card id    | archived (MTGGoldfish)           | low (PoC) |
 | pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
+| epic       | `sources/epic.py`      | offer id   | **ephemeral** (weekly free-game rotation + RRP-at-giveaway; no public archive of what was given away) | **med-high** |
 
 ### fuel & electricity
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -91,9 +92,13 @@ high on this column.
    the electricity genre across both hemispheres, and the negative-rate "plunge" signal is a fun
    capability flex. The product code is renamed ~yearly so it's discovered at runtime (currently
    `AGILE-24-10-01`).
-4. **Epic Games free-games rotation** `[MED-HIGH]` — `store-site-backend-static.ak.epicgames.com/freeGamesPromotions`
-   (the store's own backend, keyless). The weekly free-game rotation is ephemeral and barely archived.
-   Deal = currently free. Gate Epic robots/ToS before recon.
+4. ~~**Epic Games free-games rotation**~~ `[DONE 2026-07-01, med-high]` → `sources/epic.py`. Keyless
+   store backend (`store-site-backend-static.ak.epicgames.com/freeGamesPromotions`; backend host has no
+   robots, store.epicgames.com robots fences only `/account /cart /library` + `*?q=` search — never the
+   promo backend → sanctioned → trove). One memoized GET returns the whole rotation; join key = offer
+   `id`. `price_cents` = effective price (`0` while free, RRP once the window ends → core `drops` =
+   an upcoming title crossing RRP→Free), `was_cents` = RRP, is_deal "free" = a live giveaway window.
+   `--cc` picks country/currency (default nz → NZD).
 5. **A pure listings source** `[HIGH]` — deepen discogs to capture marketplace *inventory churn*, or
    find another marketplace with a keyless listings endpoint. Listings are the canonical ephemeral hoard.
 6. **CoinGecko / crypto** `[LOW — PoC only]` — keyless, clean, but full price history is downloadable,

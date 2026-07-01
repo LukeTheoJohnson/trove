@@ -65,6 +65,7 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | scryfall | `--cc` = `usd`\|`eur`\|`tix` (nonfoil) | `foil_cents` | `set`, `rarity`, `released` |
 | pokemontcg | `--cc` = `usd` (TCGplayer market) \| `eur` (Cardmarket trend) | `denom`, `variant`, `low_cents`, `mid_cents`, `high_cents`, `avg30_cents`, `avg7_cents`, `updated` | `set`, `series`, `released` |
 | ygoprodeck | `--cc` = tracked venue (`tcgplayer` default) | `denom`, `tcgplayer_c`, `cardmarket_c`, `ebay_c`, `amazon_c`, `coolstuffinc_c` | `attribute`, `atk`, `def`, `level`, `archetype`, `sets` |
+| epic | country/currency via `--cc` (`nz` -> NZD); effective price (`0` while free), `was_cents` = RRP | `free`, `upcoming`, `start`, `end`, `currency` | `desc`, `url`, `image`, `orig_fmt`, `currency`, `namespace` |
 
 ### fuel & electricity
 | source | `price_cents` denomination | `flags` keys | `extra` keys |

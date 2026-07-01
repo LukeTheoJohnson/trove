@@ -41,6 +41,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | scryfall| card id             | MTG single price (usd/eur/tix) + foil deal | keyless official API     |
 | pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 | ygoprodeck| card id (passcode) | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API |
+| epic    | offer id            | free-game rotation: RRP -> Free window + which titles given away | keyless store backend |
 
 ### fuel & electricity
 | source  | join key            | timeline value                         | API                          |
