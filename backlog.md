@@ -59,6 +59,7 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | volcano    | `sources/volcano.py`   | volcanoID       | archived (GeoNet VAL bulletins) | low-med (NZ geohazard suite w/ geonet; clean state series) |
 | nzski      | `sources/nzski.py`     | resort data-slug | **ephemeral** (daily base depth + lifts/trails/open-closed churn, overwritten through the day, gone at season end; never archived) | **high** |
 | gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
+| spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
 
 ### aviation
 | source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -171,6 +172,24 @@ high on this column.
     path; heavy RE, possibly private - parked). **GeoNet felt-intensity** (`/intensity?type=reported`)
     works keyless but was rejected as a poor model fit: it's an aggregated MMI heatmap with **no stable
     join key** (grid points shift), unlike volcano/quake by-id.
+- **spaceweather gate (2026-07-02, NOAA SWPC space weather - invented, new domain):**
+  `services.swpc.noaa.gov` has **no robots.txt (404 = unfenced)** and serves keyless, official NOAA
+  product JSON = sanctioned -> trove. Opened a brand-new domain (space weather / aurora) that no
+  existing genre covered; filed under weather/environment. Used
+  `products/noaa-planetary-k-index-forecast.json` (a flat list of `{time_tag, kp, observed, noaa_scale}`
+  3-hourly rows spanning ~10 past observed + 3 predicted days) over the sibling `noaa-scales.json`
+  (whose G/R/S storm scales sit at 0 most days = little signal). Model = the **metno forecast-drift
+  pattern**: aggregate per UTC date, join key = `YYYY-MM-DD`, `price_cents` = that day's **peak Kp** *
+  100 (centi-Kp) so core `drops` = a day's peak forecast revised *down* (storm calming), `qty` = count
+  of 3-hour periods at Kp>=5; is_deal "aurora" = peak Kp>=5 (geomagnetic storm, aurora australis
+  threshold for southern NZ). The stable date key with a shifting target is what makes the obs log the
+  **un-rebuildable as-issued forecast series** (SWPC archives realized Kp, not the revision history).
+  Key findings: (1) the JSON's first element is real data, **not** a header row (unlike some SWPC CSV
+  products) - iterate all rows. (2) times are **UTC** (no tz), so a "date" is a UTC calendar day -
+  honest for the drift hoard, documented like metno. (3) most days are quiet (peak Kp 2-4, 0 storm
+  periods); the hoard's whole point is catching the rare escalation (build day had 2026-07-03 forecast
+  at peak Kp 6.0 / G2 = a live aurora deal). money() renders centi-Kp as $ in the 2 hardcoded spots
+  (geonet/metno/volcano precedent).
 - **metno gate (2026-06-27, weather forecast-drift - "something different"):** picked deliberately
   off-genre - everything else in trove hoards a *present-state* value (price/seats/fuel/magnitude);
   this hoards a **prediction about the future and its revision**. First pick **Open-Meteo** was
