@@ -66,6 +66,7 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | pokemontcg | `--cc` = `usd` (TCGplayer market) \| `eur` (Cardmarket trend) | `denom`, `variant`, `low_cents`, `mid_cents`, `high_cents`, `avg30_cents`, `avg7_cents`, `updated` | `set`, `series`, `released` |
 | ygoprodeck | `--cc` = tracked venue (`tcgplayer` default) | `denom`, `tcgplayer_c`, `cardmarket_c`, `ebay_c`, `amazon_c`, `coolstuffinc_c` | `attribute`, `atk`, `def`, `level`, `archetype`, `sets` |
 | epic | country/currency via `--cc` (`nz` -> NZD); effective price (`0` while free), `was_cents` = RRP | `free`, `upcoming`, `start`, `end`, `currency` | `desc`, `url`, `image`, `orig_fmt`, `currency`, `namespace` |
+| steammarket | USD cents (search `sell_price`, integer); `--cc` = Steam currency code (default `1`=USD) localises the `item`/`poll` priceoverview `lowest_price` only (search is USD-only); `qty` = listing depth (`sell_listings`) on **search** rows / 24h `volume` on **item+poll** rows (see `flags.src`) | `src` (`search`/`overview`), `listings`, `median_cents`, `volume`, `currency`, `median_text` | `app`, `hash_name`, `icon`, `url`, `tradable` |
 
 ### fuel & electricity
 | source | `price_cents` denomination | `flags` keys | `extra` keys |

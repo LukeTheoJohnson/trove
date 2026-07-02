@@ -31,6 +31,7 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | pokemontcg | `sources/pokemontcg.py`| card id    | archived (prices.pokemontcg.io)  | low (PoC) |
 | ygoprodeck | `sources/ygoprodeck.py`| card id    | no public cross-venue series      | medium |
 | epic       | `sources/epic.py`      | offer id   | **ephemeral** (weekly free-game rotation + RRP-at-giveaway; no public archive of what was given away) | **med-high** |
+| steammarket | `sources/steammarket.py` | appid:hash_name | **ephemeral** (live lowest-ask + listing depth + 24h volume; snapshot only) | low-med (PoC; third-party sites archive median prices) |
 
 ### fuel & electricity
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -363,3 +364,20 @@ high on this column.
   (ClaudeBot, GPTBot...). Passes both skip triggers by the letter; proceeded as a personal API client
   with an honest UA, no training/redistribution. Lesson: cross-marketplace prices mix currencies +
   resale noise — only TCGplayer-vs-CoolStuffInc is an honest arbitrage signal.
+- **steammarket gate (2026-07-02, Steam Community Market — invented, Active queue was thin):**
+  `steamcommunity.com/robots.txt` for `User-agent: *` disallows only `/actions/ /linkfilter/
+  /tradeoffer/ /trade/ /email/` — **`/market/` is open** (the trade-offer flow is fenced, not the
+  market data). Both endpoints the market page itself calls are keyless 200: `/market/search/render/
+  ?query=&appid=&norender=1` (discovery: `sell_price` integer cents, `sell_listings` depth,
+  `hash_name`) and `/market/priceoverview/?appid=&market_hash_name=&currency=` (per item:
+  `lowest_price`/`median_price` **text**, `volume`). Page-called + keyless + `/market` unfenced =
+  sanctioned -> trove. Key findings: (1) **search render is USD-only without auth** — it silently
+  ignores `&currency=22`, so `--cc` (a Steam currency *integer*, 22=NZD) localises priceoverview
+  only; default `--cc 1` (USD) keeps search and item/poll in one currency for a clean series. (2) the
+  two endpoints carry different secondary metrics, so they share the obs log via `flags.src` (grabone
+  precedent): `search` rows log `qty`=listing depth, `item`/`poll` rows log `qty`=24h volume +
+  `flags.median_cents`. (3) no by-id endpoint and hash names repeat across games, so the join key is
+  composite `appid:market_hash_name` (split on the first `:`; appid is the numeric prefix). is_deal
+  "cheap" = lowest ask below the 24h median. Honest hoard value **low-med**: third-party sites
+  (pricempire/csgobackpack) archive median prices, so the draw is the live depth/volume snapshot +
+  completing the marketplace set (fungible-goods complement to reverb/discogs), not un-rebuildability.

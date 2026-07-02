@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-23 sources in five genres (the same grouping `python trove.py` prints):
+24 sources in five genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -42,6 +42,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | pokemontcg| card id           | Pokemon single market price (usd/eur) + under-market deal | keyless official API |
 | ygoprodeck| card id (passcode) | Yu-Gi-Oh single price per venue + retailer arbitrage | keyless official API |
 | epic    | offer id            | free-game rotation: RRP -> Free window + which titles given away | keyless store backend |
+| steammarket | appid:market_hash_name | Steam Community Market lowest ask + listing depth + 24h volume; deal = below 24h median | keyless market backend |
 
 ### fuel & electricity
 | source  | join key            | timeline value                         | API                          |
