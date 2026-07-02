@@ -54,7 +54,7 @@ sources concatenate cleanly into one hoard. `obs`/`latest` columns:
 
 ## Per-source semantics (denomination, `flags`, `extra`)
 
-Grouped by genre (same four sections as the `--help` listing and the backlog).
+Grouped by genre (same sections as the `--help` listing and the backlog).
 
 ### games / media / collectibles
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
@@ -86,6 +86,12 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | eventcinemas | **not money** — `qty` = seats remaining (no price in feed); deal = a session near sellout | `cinema`, `cinema_id`, `screen_type`, `screen`, `start`, `attributes`, `reserved_seating`, `sold_out` | `movie`, `movie_id`, `movie_url`, `rating`, `cinema`, `screen_type`, `screen`, `start`, `date`, `booking_url` |
 | reverb | `--cc` display currency (default NZD, via `X-Display-Currency`) — effective checkout price (`buyer_price`); `was_cents` = list `price` when marked down; `qty` = inventory; deal = a live seller markdown | `state`, `condition`, `sale`, `ribbon`, `currency`, `offers`, `auction` | `model`, `year`, `finish`, `shop`, `url`, `image`, `currency` |
 
+### attention & rank
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| hackernews | **not money** — `price_cents` = front-page **rank * 100** (centi-rank, rank 1 = top), so `drops` = a story *climbing*; `NULL` once it falls off the top-500 (obs then ride on `qty`); `qty` = comment count; deal = rank <= 10. money() renders centi-rank as $ in the watchlist + poll DROP line only (geonet/metno precedent) | `rank`, `score`, `comments`, `by`, `age_h`, `type` | `title`, `by`, `url`, `domain`, `posted`, `hn_url` |
+| appcharts | **not money** — `price_cents` = chart **rank * 100** (centi-rank), so `drops` = an app *climbing*; an app off the chart ends its series (fetch returns nothing); deal = rank <= 10; `--cc` = storefront country (default nz, embedded in the join key). money() renders centi-rank as $ in the 2 hardcoded spots | `rank`, `chart`, `country`, `artist`, `updated` | `appid`, `artist`, `chart`, `country`, `released`, `url`, `icon` |
+
 ### weather, environment & geohazard
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
 |--------|----------------------------|--------------|--------------|
@@ -95,11 +101,13 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | nzski | **not money** — `price_cents` = headline base depth cm * 100, so `drops` = the base *melting*; `qty` = lifts open count | `base_cm`, `base_min`, `base_max`, `season_total`, `last7days`, `lifts_open`, `lifts_total`, `trails_open`, `trails_total`, `status`, `temp_high`, `temp_low`, `updated` | `slug`, `updated`, `road_status`, `chain_status`, `weather`, `url` |
 | gwrivers | **not money** — `price_cents` = latest **Flow** m3/s * 100 (centi-cumecs) **or** Stage mm * 100 (per-site consistent; read `flags.measurement`/`unit`), so `drops` = a river *receding*; deal `rising` is precomputed in flags | `measurement`, `unit`, `value`, `value_24h_ago`, `max_24h`, `min_24h`, `change_24h`, `pct_change_24h`, `rising`, `latest_time` | `measurement`, `unit`, `url` |
 | spaceweather | **not money** — `price_cents` = a UTC day's **peak forecast Kp** * 100 (centi-Kp, 0-900), so `drops` = a day's peak-Kp forecast revised *down* (storm calming); `qty` = count of 3-hour periods that day at Kp>=5. money() renders centi-Kp as $ in the watchlist + poll DROP line only (geonet/metno/volcano precedent) | `peak_kp`, `peak_time_utc`, `status` (observed/predicted/mixed), `storm_periods`, `scale` (NOAA G-scale), `aurora` | `peak_time_utc`, `scale`, `n_periods` |
+| sentry | **not money** — `price_cents` = cumulative **Palermo scale * 100** (centi-Palermo, negative), so `drops` = an object's impact risk revised *down*; an object retired from the risk list ends its series (fetch returns nothing); `qty` = count of potential impacts (`n_imp`); deal = Torino >= 1 or Palermo >= -2. money() renders centi-Palermo as (negative) $ in the 2 hardcoded spots | `ps_cum`, `ps_max`, `ts_max`, `ip`, `n_imp`, `diameter_km`, `last_obs`, `src` (`list`/`detail`) | `diameter_km`, `h_mag`, `last_obs`, `range`, `v_inf_kms`; detail adds `first_obs`, `n_obs`, `mass_kg`, `energy_mt`, `v_imp_kms`, `computed`, `method`, `n_vi`, `nearest_imp` |
 
 ### aviation
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
 |--------|----------------------------|--------------|--------------|
 | chcflights | **not money** — `price_cents` = **delay in minutes** (estimate − scheduled; negative = early, `0` = currently expected on time), so `drops` = a flight that *recovered* (delay shrank); deal = delayed ≥ 15 min or cancelled. money() cosmetically renders the delay as dollars in the watchlist + poll DROP line only | `status`, `gate`, `estimate`, `scheduled`, `delay_min`, `cancelled`, `delayed`, `route`, `direction`, `type`, `last_updated` | `flight_no`, `codeshares`, `airline`, `airline_code`, `route`, `direction`, `type`, `scheduled`, `image_url` |
+| zqnflights | **not money** — `price_cents` = **delay in minutes** (estimate − scheduled, an honest datetime diff — ZQN serves full ISO date+time pairs; `0` = currently expected on time), so `drops` = a flight that *recovered*; deal = delayed ≥ 15 min or cancelled. Same money() cosmetic as chcflights | `status`, `scheduled`, `estimate`, `delay_min`, `cancelled`, `delayed`, `route`, `direction`, `domestic` | `flight_no`, `codeshares`, `from`, `to`, `route`, `direction`, `domestic`, `scheduled` |
 
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored

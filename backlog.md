@@ -19,7 +19,7 @@ each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 
 ## Ported sources
 
-Grouped by genre (same four sections as the `--help` listing and the data dictionary).
+Grouped by genre (same sections as the `--help` listing and the data dictionary).
 
 ### games / media / collectibles
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -51,6 +51,12 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
 | reverb     | `sources/reverb.py`    | listing id      | **ephemeral** (a used-gear listing's ask + seller markdowns over its life, then it sells and vanishes; Reverb keeps no public per-listing price-history archive) | **high** |
 
+### attention & rank
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| hackernews | `sources/hackernews.py`| story id   | **ephemeral-ish** (the minute-level rank/points trajectory is served current-state-only; third parties snapshot front-page membership and final scores, not the climb) | med |
+| appcharts  | `sources/appcharts.py` | country:chart:appId | **ephemeral** (the chart as published rotates through the day; chart *history* is exactly what Sensor Tower/Appfigures sell — no free public archive) | med-high |
+
 ### weather, environment & geohazard
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
@@ -60,11 +66,13 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | nzski      | `sources/nzski.py`     | resort data-slug | **ephemeral** (daily base depth + lifts/trails/open-closed churn, overwritten through the day, gone at season end; never archived) | **high** |
 | gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
 | spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
+| sentry     | `sources/sentry.py`    | Sentry designation | **ephemeral** (the risk list *as issued*: ps/ip/ts revisions + when objects appear/retire; CNEOS publishes the current list and a bare removed-objects list, never the revision trajectory) | **high** (un-rebuildable revision drift; planetary defence) |
 
 ### aviation
 | source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|--------------------------|------------|----------------------------------|-------------|
 | chcflights | `sources/chcflights.py`  | dir:type:flightNo:scheduled | **ephemeral** (a flight's estimate/gate/status drift from schedule in the hours before it operates; the board drops it once it operates and no public archive keeps the minute-by-minute progression) | **high** |
+| zqnflights | `sources/zqnflights.py`  | dir:flightNo:schDate:schTime | **ephemeral** (same class as chcflights — and ZQN's weather-prone alpine runway makes its board NZ's most disruption-rich) | **high** |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -113,11 +121,28 @@ high on this column.
    ahead of it this run were **BoardGameGeek** (skipped — `Disallow: /xmlapi` + a `# GeekMarket JSON
    endpoints` block fence both the XML API and the marketplace JSON). Deepening discogs' inventory
    churn is still open as a separate follow-up.
-6. **CoinGecko / crypto** `[LOW — PoC only]` — keyless, clean, but full price history is downloadable,
-   so low hoard value. Build only as a breadth/PoC demo, not for the corpus.
+6. ~~**CoinGecko / crypto**~~ `[SKIPPED 2026-07-03 — robots-fenced]` — was queued as a LOW/PoC
+   breadth demo, but the gate failed before politeness even came up: `api.coingecko.com/robots.txt`
+   has `Disallow: /api/v3` (plus `/api/v1`, `/api/v2`, `/api/mobile`) — the exact data path fenced
+   for `User-agent: *`. CheapShark skip class (sanctioned-first only applies to an un-fenced path).
+   Hard skip, not even as a PoC.
 
 ## Skipped
 
+- **CoinGecko** `[skipped] 2026-07-03` — `api.coingecko.com/robots.txt` fences the data paths
+  outright: `Disallow: /api/v1`, `/api/v2`, `/api/v3`, `/api/mobile`. The exact endpoints the
+  keyless tier serves are disallowed for `User-agent: *` = CheapShark skip class. Closes Active
+  queue #6 — the "LOW/PoC breadth demo" idea dies at the gate, which is tidier than building it.
+- **MET Norway oceanforecast (NZ waves)** `[skipped] 2026-07-03` — the host gate is fine (same
+  api.met.no as metno, `User-agent: *` fully allowed) but the *product* is geographically fenced:
+  `oceanforecast/2.0` returns **422 "Oceanforecast is only available for Northern/Western Europe"**
+  for NZ coordinates. New skip shape: a sanctioned host can still capability-fence one product by
+  geography — gate the product's coverage, not just the host's robots. A NZ swell/marine source
+  needs a different provider.
+- **MetService (NZ marine/surf re-roll)** `[parked] 2026-07-03` — `www.metservice.com/robots.txt`
+  is open (`User-agent: *`, zero Disallow), but the community-known `publicData/webdata/...` path
+  scheme appears to have moved (two probed paths 404). Needs a page-bundle recon pass to find the
+  current call sites before it's a real candidate; parked rather than skipped.
 - **BoardGameGeek marketplace** `[skipped] 2026-07-02` — `boardgamegeek.com/robots.txt` fences both
   read paths for `User-agent: *`: `Disallow: /xmlapi` prefix-matches the official `/xmlapi2/thing?...
   marketplace=1` XML endpoint, **and** a dedicated `# GeekMarket JSON endpoints` block explicitly
@@ -140,6 +165,42 @@ high on this column.
 
 ## Notes
 
+- **Width batch (2026-07-03, "dramatically extend the width" — 4 drops, a new genre, 3 gate
+  records):** four sources in one pass, opening **attention & rank** (a genre where the tracked
+  scalar is *where the crowd's eyeballs are*, not a price) plus planetary defence and a second
+  airport. All keyless, all robots-gated first. The centi-rank trick (rank * 100 in `price_cents`,
+  so the core's `drops` = *climbing*) is the geonet scalar-reuse pattern pointed at position
+  instead of magnitude, and works unchanged.
+  - **sentry gate:** `ssd-api.jpl.nasa.gov` robots is **404 = unfenced**, and the Sentry API is
+    official, documented, keyless NASA/JPL = sanctioned -> trove. Key findings: (1) list mode
+    (`?ps-min=-4` -> 39 objects; the full list is ~2163) and detail mode (`?des=`) share field
+    names, so one builder serves both; detail adds a `summary` block + per-virtual-impactor rows.
+    (2) **every number arrives as a string** ("-2.77", "300") — parse defensively; `ts_max` can be
+    JSON null (Bennu/1950 DA have no Torino rating). (3) designations contain spaces
+    (`2000 SG344`) so the query is built with `%20` not `+` — the gwrivers/Hilltop lesson applied
+    preemptively. (4) removal from the risk list = fetch returns None = the series ends; that
+    *retirement event* is half the hoard's point. Deal "risk" = Torino >= 1 or Palermo >= -2.
+  - **hackernews gate:** `hacker-news.firebaseio.com/robots.txt` is `Allow: /*.json$` +
+    `Disallow: /` — the *allow-list matches exactly the official API's paths*, the cleanest
+    possible sanction (the vendor whitelisted their own API shape). Key findings: (1) there is
+    no rank field; rank = position in the `topstories.json` id list, memoized so one GET ranks a
+    whole poll. (2) `search` scans the top-30 (one lightweight GET per story, 0.1s spacing) —
+    bounded, never a crawl. (3) a story off the top-500 has rank None; obs ride on `qty` =
+    comment count so the tail of a story's life still logs.
+  - **appcharts gate:** `rss.marketingtools.apple.com/robots.txt` is a single documentation
+    comment, zero Disallow = open; the marketing-tools RSS is Apple's own built-for-reuse feed =
+    sanctioned -> trove. Key findings: (1) depth 100 works per chart (`/api/v2/nz/apps/top-free/
+    100/apps.json`); (2) the same app sits in several charts/countries, so the join key is
+    composite `country:chart:appId` and fetch/poll read the country from the *id*, not `--cc` —
+    mixed-country watchlists stay coherent; (3) `feed.updated` timestamps the rotation.
+  - **zqnflights gate:** `queenstownairport.co.nz` robots has zero Disallow (only a Sitemap), and
+    grepping the site's own `all.bundle.js` gave the same-origin, keyless
+    `/api/flights/arrivals` + `/api/flights/departures` = page-called + unfenced = sanctioned ->
+    trove (chcflights precedent; AKL's Cloudflare wall and WLG's fenced paths keep them skipped).
+    Key findings: (1) ZQN serves **full ISO date+time pairs** (`schDate`/`schTime` +
+    `estDate`/`estTime`) — the delay is an honest datetime subtraction, no CHC midnight-wrap
+    heuristic; (2) codeshares ride in `flightList[1:]`; (3) no by-flight endpoint, so the
+    composite key `dir|flightNo|schDate|schTime` rebuilds the board query.
 - **NZ-specific batch (2026-06-27, "3 drops to round out the repo"):** three distinct NZ genres
   trove lacked - geohazard alert state, ski recreation, and hydrology/flood.
   - **volcano** - GeoNet `/volcano/val` (sibling of `geonet`, same sanctioned keyless network; robots
