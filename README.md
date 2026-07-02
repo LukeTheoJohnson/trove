@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-21 sources in five genres (the same grouping `python trove.py` prints):
+23 sources in five genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -59,6 +59,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | bookme  | activity URL path   | NZ activity deal price + spaces-remaining + steep-discount deal | SSR page-parse |
 | turners | car detail path     | NZ used-car asking price + RRP/discount over a listing's life | page-published microdata |
 | eventcinemas | cinemaId:date:sessionId | NZ cinema session seats-remaining ticking down to showtime (scarcity) | keyless GetSessions JSON |
+| reverb  | listing id          | used-gear marketplace ask price + seller markdown over a listing's life (then it sells and vanishes); deal = on-sale | keyless official Reverb API |
 
 ### weather, environment & geohazard
 | source  | join key            | timeline value                         | API                          |

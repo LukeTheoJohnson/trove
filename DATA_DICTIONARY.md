@@ -83,6 +83,7 @@ Grouped by genre (same four sections as the `--help` listing and the backlog).
 | bookme | NZD deal price; `was_cents` = price+save; `qty` = spaces remaining | `currency`, `discount_pct`, `save_cents`, `region`, `date_from`, `date_to` | `url`, `region`, `rating`, `reviews` |
 | turners | NZD asking price; `was_cents` = RRP where discounted | `currency`, `channel`, `discounted`, `discount_pct`, `odometer_km`, `branch`, `availability` | `make`, `model`, `year`, `odometer_km`, `branch`, `fuel`, `body`, `channel`, `url` |
 | eventcinemas | **not money** — `qty` = seats remaining (no price in feed); deal = a session near sellout | `cinema`, `cinema_id`, `screen_type`, `screen`, `start`, `attributes`, `reserved_seating`, `sold_out` | `movie`, `movie_id`, `movie_url`, `rating`, `cinema`, `screen_type`, `screen`, `start`, `date`, `booking_url` |
+| reverb | `--cc` display currency (default NZD, via `X-Display-Currency`) — effective checkout price (`buyer_price`); `was_cents` = list `price` when marked down; `qty` = inventory; deal = a live seller markdown | `state`, `condition`, `sale`, `ribbon`, `currency`, `offers`, `auction` | `model`, `year`, `finish`, `shop`, `url`, `image`, `currency` |
 
 ### weather, environment & geohazard
 | source | `price_cents` denomination | `flags` keys | `extra` keys |

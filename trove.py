@@ -27,7 +27,7 @@ DATA_DIR = os.path.join(ROOT, "data")
 SOURCE_GROUPS = {
     "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "epic"),
     "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus"),
-    "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas"),
+    "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers"),
     "aviation":                         ("chcflights",),
 }

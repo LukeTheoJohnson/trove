@@ -48,6 +48,7 @@ Grouped by genre (same four sections as the `--help` listing and the data dictio
 | bookme     | `sources/bookme.py`    | activity path   | **ephemeral** (activity deal price + *spaces remaining* ticking down, never archived) | **high** |
 | turners    | `sources/turners.py`   | car detail path | **ephemeral** (a used car's asking-price markdown history over its listing, then the listing vanishes when it sells) | **high** |
 | eventcinemas | `sources/eventcinemas.py` | cinemaId:date:sessionId | **ephemeral** (a screening's seats-remaining fill-rate from on-sale to showtime, never archived; session vanishes after it plays) | **high** |
+| reverb     | `sources/reverb.py`    | listing id      | **ephemeral** (a used-gear listing's ask + seller markdowns over its life, then it sells and vanishes; Reverb keeps no public per-listing price-history archive) | **high** |
 
 ### weather, environment & geohazard
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -99,13 +100,28 @@ high on this column.
    `id`. `price_cents` = effective price (`0` while free, RRP once the window ends → core `drops` =
    an upcoming title crossing RRP→Free), `was_cents` = RRP, is_deal "free" = a live giveaway window.
    `--cc` picks country/currency (default nz → NZD).
-5. **A pure listings source** `[HIGH]` — deepen discogs to capture marketplace *inventory churn*, or
-   find another marketplace with a keyless listings endpoint. Listings are the canonical ephemeral hoard.
+5. ~~**A pure listings source**~~ `[DONE 2026-07-02, high]` → `sources/reverb.py`. Realized as
+   **Reverb** (used musical-gear marketplace): official keyless `reverb.com/api/listings` (robots
+   leaves `/api/listings` open, fencing only `/api/my` + a few per-listing sub-paths → sanctioned →
+   trove). One Item per **listing** (join key = listing `id`) — the structural twin of `turners`
+   (one listing, markdown history, then sold-and-vanished). `price_cents` = effective checkout price
+   (`buyer_price`), `was_cents` = list `price` when marked down, `qty` = inventory; deal "sale" = a
+   live seller markdown (`buyer_price` < `price`, Reverb's `sale_ribbon`). `--cc` display currency
+   (default NZD via `X-Display-Currency`); `search --sale` filters to on-sale listings. Two candidates
+   ahead of it this run were **BoardGameGeek** (skipped — `Disallow: /xmlapi` + a `# GeekMarket JSON
+   endpoints` block fence both the XML API and the marketplace JSON). Deepening discogs' inventory
+   churn is still open as a separate follow-up.
 6. **CoinGecko / crypto** `[LOW — PoC only]` — keyless, clean, but full price history is downloadable,
    so low hoard value. Build only as a breadth/PoC demo, not for the corpus.
 
 ## Skipped
 
+- **BoardGameGeek marketplace** `[skipped] 2026-07-02` — `boardgamegeek.com/robots.txt` fences both
+  read paths for `User-agent: *`: `Disallow: /xmlapi` prefix-matches the official `/xmlapi2/thing?...
+  marketplace=1` XML endpoint, **and** a dedicated `# GeekMarket JSON endpoints` block explicitly
+  disallows `/api/market/products/saleitem` (listings) + `/api/market/products/pricehistory` (price
+  series) — the exact marketplace data. Sanctioned API but the specific data paths are fenced, so it's
+  the CheapShark skip class (sanctioned-first only applies to an un-fenced path). Hard skip.
 - **CheapShark** `[skipped] 2026-06-23` — `cheapshark.com/robots.txt` has `Disallow: /api/1.0/`,
   fencing the exact data endpoint. Hard skip for an autonomous tool even though the API is keyless
   and documented (sanctioned-first only applies to an un-fenced path).
