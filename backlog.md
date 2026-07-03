@@ -41,6 +41,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
 | octopus    | `sources/octopus.py`   | GSP group (A-P) | archived (the official API serves the **full** realized half-hourly rate history, paginated) | low-med (PoC; UK retail twin of em6, completes the electricity genre both hemispheres) |
 
+### currency & macro
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| frankfurter | `sources/frankfurter.py` | BASE:QUOTE (e.g. NZD:USD) | archived (ECB reference rates are a permanent public record; the whole series re-downloads in one GET) | low (PoC) — the draw is the **instant-depth ingestion capability** (`Obs.history` backfill, built for this source) + the daily buy-USD percentile signal |
+
 ### deals, fares & listings
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
@@ -165,6 +170,25 @@ high on this column.
 
 ## Notes
 
+- **frankfurter gate (2026-07-03, ECB FX — invented for the "lots of historic data in one poll"
+  steer):** both `api.frankfurter.dev` and `frankfurter.dev` robots are `User-agent: * / Allow: /`
+  (zero Disallow), and Frankfurter is an official, open-source (lineofflight/frankfurter), keyless,
+  documented public API over ECB reference rates = sanctioned -> trove. Opened the **currency &
+  macro** genre. Key findings: (1) the range endpoint (`/v1/1999-01-04..?base=NZD&symbols=USD`)
+  returns the **entire 27-year daily series in one GET** — 7,040 rows, ~200 KB — shape
+  `{amount, base, start_date, end_date, rates:{"YYYY-MM-DD":{SYM: float}}}`; `/latest` swaps
+  `start_date`/`end_date` for a single `date`. (2) This run added the generic backfill channel the
+  steer needed to `trove/db.py`: `Obs.ts` (backdated stamp) + `Obs.history` (backdated rows), merged
+  idempotently under tag `hist` (only unseen `ts` values insert), so the first fetch seeds decades
+  and every later poll appends just the new tail — backwards-compatible, no existing source touched.
+  (3) The `fetch`/`refresh` split finally earns its keep as a *window* split: `fetch` (item) pulls
+  the full epoch, `refresh` (poll) a trailing ~400 days — enough for the 1y percentile without
+  re-shipping the epoch daily. (4) `price_cents` = rate * 10,000 (pips) — centi-units would be
+  uselessly coarse for a ~0.56 rate; `qty` = trailing-1y percentile; deal "high" = >=90th pctile
+  (base strong = a good conversion moment). At build, NZD/USD 0.5671 sat at the **8th** percentile
+  (weak NZD — correctly not a deal). (5) Honest hoard value **low**: the steer inherently selects
+  for archived data (you can only get deep history in one poll if someone archived it); the
+  capability + signal are the point, stated up front in the backlog row.
 - **Width batch (2026-07-03, "dramatically extend the width" — 4 drops, a new genre, 3 gate
   records):** four sources in one pass, opening **attention & rank** (a genre where the tracked
   scalar is *where the crowd's eyeballs are*, not a price) plus planetary defence and a second

@@ -17,14 +17,22 @@ def now() -> str:
 
 
 class Obs:
-    """A single observation of an item at a point in time."""
-    __slots__ = ("price_cents", "was_cents", "qty", "flags")
+    """A single observation of an item at a point in time.
 
-    def __init__(self, price_cents=None, was_cents=None, qty=None, flags=None):
+    ts backdates the row ("YYYY-MM-DD HH:MM:SS"; None = now). history carries backdated Obs
+    rows (each with its own ts) that a deep-history payload hands over in one poll; they are
+    merged into the obs log idempotently under tag "hist", so the first fetch seeds years of
+    series and later fetches add only the unseen dates.
+    """
+    __slots__ = ("price_cents", "was_cents", "qty", "flags", "ts", "history")
+
+    def __init__(self, price_cents=None, was_cents=None, qty=None, flags=None, ts=None, history=None):
         self.price_cents = price_cents
         self.was_cents = was_cents
         self.qty = qty
         self.flags = flags or {}
+        self.ts = ts
+        self.history = history or []
 
     def has_signal(self) -> bool:
         return self.price_cents is not None or self.qty is not None
@@ -79,11 +87,29 @@ class TrackerDB:
     def log_obs(self, item_id, obs: Obs, tag: str):
         if obs is None or not obs.has_signal():
             return
+        if obs.history:
+            self._merge_history(item_id, obs.history)
         self.conn.execute("""INSERT INTO obs (item_id,ts,price_cents,was_cents,qty,flags,tag)
             VALUES (?,?,?,?,?,?,?)""",
-            (str(item_id), now(), obs.price_cents, obs.was_cents, obs.qty,
+            (str(item_id), obs.ts or now(), obs.price_cents, obs.was_cents, obs.qty,
              json.dumps(obs.flags) if obs.flags else "", tag))
         self.conn.commit()
+
+    def _merge_history(self, item_id, rows: list[Obs]):
+        """Idempotent backfill: insert only rows whose ts the item doesn't already hold as
+        tag='hist', so re-polling a deep-history payload appends the new tail and nothing else."""
+        have = {r["ts"] for r in self.conn.execute(
+            "SELECT ts FROM obs WHERE item_id=? AND tag='hist'", (str(item_id),))}
+        fresh = []
+        for h in sorted(rows, key=lambda h: h.ts or ""):
+            if h.ts and h.ts not in have and h.has_signal():
+                have.add(h.ts)
+                fresh.append(h)
+        if fresh:
+            self.conn.executemany("""INSERT INTO obs (item_id,ts,price_cents,was_cents,qty,flags,tag)
+                VALUES (?,?,?,?,?,?,?)""",
+                [(str(item_id), h.ts, h.price_cents, h.was_cents, h.qty,
+                  json.dumps(h.flags) if h.flags else "", "hist") for h in fresh])
 
     def add_watch(self, item_id):
         self.conn.execute("INSERT OR IGNORE INTO watch (item_id,added_at) VALUES (?,?)",

@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-29 sources in six genres (the same grouping `python trove.py` prints):
+30 sources in seven genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -51,6 +51,11 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | petrolspy| station id          | NZ per-station fuel price (U91) + below-box-avg deal | keyless PetrolSpy map API |
 | em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
 | octopus | GSP group (A-P)     | UK Agile Octopus half-hourly unit rate (p/kWh) + cheap-window/plunge deal | keyless official Octopus API |
+
+### currency & macro
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| frankfurter | BASE:QUOTE (e.g. NZD:USD) | ECB daily FX fixing — one `item` call seeds the full daily series since 1999 into the obs log; deal = base at/above the 90th percentile of its trailing year (a strong moment to convert) | keyless open-source Frankfurter/ECB API |
 
 ### deals, fares & listings
 | source  | join key            | timeline value                         | API                          |

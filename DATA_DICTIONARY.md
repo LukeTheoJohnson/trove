@@ -29,7 +29,7 @@ items, `flags` on observations), so a new source needs no migration.
 | `was_cents` | INTEGER | reference/list price where the source provides one |
 | `qty` | INTEGER | quantity/availability signal (e.g. discogs `num_for_sale`) |
 | `flags` | TEXT (JSON) | source-specific signals (see per-source table) |
-| `tag` | TEXT | what wrote the row: `search` / `item` / `poll` |
+| `tag` | TEXT | what wrote the row: `search` / `item` / `poll` / `hist` (backdated rows merged from a deep-history payload — `ts` is the source's own historic date, inserted idempotently so re-polling never duplicates them) |
 
 ### `watch` — the watchlist
 | column | meaning |
@@ -75,6 +75,11 @@ Grouped by genre (same sections as the `--help` listing and the backlog).
 | petrolspy | NZ/AU cents/L for the headline grade | `grade`, `board`, `updated`, `relevant`, `area_avg`, `unit` | `suburb`, `postcode`, `lat`, `lon`, `open24`, `country`, `brand` |
 | em6 | NZ wholesale electricity spot, $/MWh * 100 (so `drops` = price *falling*) | `unit` ($/MWh), `trading_period`, `timestamp`, `nat_avg` | `grid_zone_id` |
 | octopus | UK Agile unit rate, p/kWh inc VAT * 100 (centi-pence; can be **negative** = plunge pricing), so `drops` = electricity *getting cheaper*; deal = at/below today's avg or a negative rate. money() cosmetically renders the rate as dollars in the watchlist + poll DROP line only (em6/geonet precedent) | `unit` (p/kWh), `basis` (`headline` from search / `half_hour` from item+poll), `day_avg`, `next_rate`, `valid_from`, `valid_to`, `plunge` | `gsp_group` |
+
+### currency & macro
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| frankfurter | ECB reference rate * 10,000 (ten-thousandths, pip-style: 0.56709 stores as 5671), so `drops` = the base currency *weakening*; `qty` = the current rate's percentile (0-100) within the trailing year; deal "high" = percentile >= 90. `item` seeds the **full daily series since 1999-01-04** as backdated `hist` rows (bare `price_cents` + `ts`, no flags); `poll` re-reads a trailing ~400-day window and appends only unseen dates. money() cosmetically renders the scaled rate as dollars in the watchlist + poll DROP line only (octopus/geonet precedent) | `rate`, `date` (ECB fixing date), `pctile_1y`, `lo_1y`, `hi_1y` (floats), `n_days`, `since`, `src` (`series` from item+poll / `latest` from search) | `base`, `quote`, `base_name`, `quote_name` |
 
 ### deals, fares & listings
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
