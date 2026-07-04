@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-33 sources in nine genres (the same grouping `python trove.py` prints):
+43 sources in nine genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -51,6 +51,8 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | petrolspy| station id          | NZ per-station fuel price (U91) + below-box-avg deal | keyless PetrolSpy map API |
 | em6     | grid_zone_id        | NZ wholesale electricity spot ($/MWh) + below-NZ-avg deal | keyless em6 public tier |
 | octopus | GSP group (A-P)     | UK Agile Octopus half-hourly unit rate (p/kWh) + cheap-window/plunge deal | keyless official Octopus API |
+| aemo    | NEM region (NSW1...)| AU National Electricity Market 5-min spot price ($/MWh) + demand + interconnector flows; deal = below the 5-region avg (or negative) | keyless AEMO visualisations API |
+| fuelwatch | suburb:address    | WA per-station fuel price (ULP cents/L, legally fixed daily) + below-suburb-avg deal | keyless WA Govt FuelWatch RSS |
 
 ### currency & macro
 | source  | join key            | timeline value                         | API                          |
@@ -72,6 +74,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 |---------|---------------------|----------------------------------------|------------------------------|
 | hackernews | story id         | HN front-page rank/points trajectory (rank 27 -> 3 -> gone); deal = top-10 | keyless official HN Firebase API |
 | appcharts | country:chart:appId | App Store top-chart rank rotation as published (history is paywalled commercially); deal = top-10 | keyless Apple marketing RSS |
+| melbped | Melbourne sensor id | City of Melbourne live per-minute pedestrian footfall per street sensor; deal = busier than the current network median | keyless Melbourne Opendatasoft API |
 
 ### weather, environment & geohazard
 | source  | join key            | timeline value                         | API                          |
@@ -84,6 +87,13 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | spaceweather | UTC forecast date | planetary Kp forecast: per-day peak + storm/aurora drift (Kp>=5 = aurora australis) | keyless NOAA SWPC feed |
 | sentry  | Sentry designation  | asteroid impact-risk drift: Palermo/Torino/impact-probability revisions, then retirement from the risk list | keyless JPL/CNEOS Sentry API |
 | avalanche | region slug       | NZ backcountry avalanche danger rating (1-5) per elevation band, as-issued daily + its revision (drift); deal = Considerable+ (>=3) | keyless page-called avalanche.net.nz /api/forecast |
+| mdcrivers | gauge site name   | Marlborough (NZ) river flow/level + flood-onset rise (1.5x in 24h) | keyless MDC Hilltop XML |
+| horizonsrivers | gauge site name | Manawatu-Whanganui (NZ) river flow/level + flood-onset rise | keyless Horizons Hilltop XML |
+| nswrfs  | incident id         | NSW (AU) bush/grass fire lifecycle: alert level escalating (Advice->Watch and Act->Emergency Warning) + size, then resolution; deal = out-of-control fire at Watch and Act+ | keyless RFS majorIncidents feed |
+| vicemergency | event id        | Victoria (AU) all-hazards warnings/incidents: alert-level lifecycle across fire/flood/storm; deal = Watch and Act+ | keyless VicEmergency GeoJSON |
+| sacfs   | incident id         | South Australia (AU) CFS incidents: response level + status (GOING->CONTROLLED); deal = still GOING | keyless SA CFS feed |
+| beachwatch | site id (uuid)   | NSW (AU) beach water-quality star rating + daily pollution forecast; deal = pollution Possible/Likely (swim advisory) | keyless NSW Beachwatch GeoJSON |
+| safeswim | beach slug        | NZ beach water-quality traffic-light (GREEN/RED/RED+/BLACK), flips with rainfall; deal = a water-quality alert | keyless page-called Safeswim API |
 
 ### aviation
 | source  | join key            | timeline value                         | API                          |

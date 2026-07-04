@@ -40,6 +40,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | petrolspy  | `sources/petrolspy.py` | station id      | **ephemeral** (NZ per-station forecourt fuel price, never archived) | **high** |
 | em6        | `sources/em6.py`       | grid_zone_id    | **ephemeral** (half-hourly NZ electricity spot, no easy public archive) | **high** |
 | octopus    | `sources/octopus.py`   | GSP group (A-P) | archived (the official API serves the **full** realized half-hourly rate history, paginated) | low-med (PoC; UK retail twin of em6, completes the electricity genre both hemispheres) |
+| aemo       | `sources/aemo.py`      | NEM region      | **ephemeral** (5-min NEM dispatch price + demand + interconnector flow snapshot; AEMO archives settled prices but not the convenient live per-region series) | med (AU twin of em6; NEM prices can go negative) |
+| fuelwatch  | `sources/fuelwatch.py` | suburb:address  | **ephemeral** (WA's legally-fixed daily forecourt price per station, overwritten each day, never archived per-station) | **high** (AU/WA twin of petrolspy/spainfuel; official regulator feed) |
 
 ### currency & macro
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -61,6 +63,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 |------------|------------------------|------------|----------------------------------|-------------|
 | hackernews | `sources/hackernews.py`| story id   | **ephemeral-ish** (the minute-level rank/points trajectory is served current-state-only; third parties snapshot front-page membership and final scores, not the climb) | med |
 | appcharts  | `sources/appcharts.py` | country:chart:appId | **ephemeral** (the chart as published rotates through the day; chart *history* is exactly what Sensor Tower/Appfigures sell — no free public archive) | med-high |
+| melbped    | `sources/melbped.py`   | Melbourne sensor id | **ephemeral** (per-minute street footfall right now, rising/falling through the day; no convenient live per-sensor archive) | med (AU attention/foot-traffic) |
 
 ### weather, environment & geohazard
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -73,6 +76,13 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
 | sentry     | `sources/sentry.py`    | Sentry designation | **ephemeral** (the risk list *as issued*: ps/ip/ts revisions + when objects appear/retire; CNEOS publishes the current list and a bare removed-objects list, never the revision trajectory) | **high** (un-rebuildable revision drift; planetary defence) |
 | avalanche  | `sources/avalanche.py` | region slug        | **ephemeral** (the NZ backcountry avalanche danger rating *as issued* daily per region + its revision; NZAA serves the current advisory only, no public per-region danger-history series) | **high** (un-rebuildable forecast-drift; NZ geohazard, seasonal) |
+| mdcrivers  | `sources/mdcrivers.py` | gauge site name    | **ephemeral** (Marlborough NZ river flow/level telemetry; no convenient unified per-gauge series) | med-high (NZ flood watch; gwrivers sibling, different region) |
+| horizonsrivers | `sources/horizonsrivers.py` | gauge site name | **ephemeral** (Manawatu-Whanganui NZ river flow/level telemetry) | med-high (NZ flood watch; flood-prone region) |
+| nswrfs     | `sources/nswrfs.py`    | incident id        | **ephemeral** (a NSW bush/grass fire's alert-level + size + status lifecycle, then it drops off the board once resolved; feed serves current state only) | **high** (un-rebuildable incident progression; AU geohazard) |
+| vicemergency | `sources/vicemergency.py` | event id       | **ephemeral** (a Victorian all-hazards warning's alert-level lifecycle across fire/flood/storm, then resolved) | **high** (un-rebuildable; AU all-hazards) |
+| sacfs      | `sources/sacfs.py`     | incident id        | **ephemeral** (an SA CFS incident's response level + status lifecycle, then closed) | med-high (AU emergency; all incident types) |
+| beachwatch | `sources/beachwatch.py`| site id (uuid)     | **ephemeral** (NSW beach daily pollution forecast + water-quality rating, changes with rainfall, not archived per-site) | **high** (AU beach water quality) |
+| safeswim   | `sources/safeswim.py`  | beach slug         | **ephemeral** (NZ beach water-quality traffic-light flipping GREEN/RED with stormwater; no per-beach live archive) | **high** (NZ twin of beachwatch) |
 
 ### aviation
 | source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -181,6 +191,40 @@ high on this column.
 
 ## Notes
 
+- **ANZ width batch (2026-07-05, "10 new daily-tool-drops, NZ + AU relevant" — 10 sources in one pass,
+  3 NZ / 7 AU):** all keyless, robots-gated first, no new genre (they fill fuel/electricity,
+  attention & rank, and weather/geohazard). Gate records & lessons:
+  - **aemo** (AU electricity): `visualisations.aemo.com.au` robots 404 = unfenced; `ELEC_NEM_SUMMARY`
+    is the page-called report API → sanctioned. em6's AU twin (5 NEM regions, 5-min spot price + demand
+    + interconnector flows; price can go negative).
+  - **fuelwatch** (AU/WA fuel): `fuelwatch.wa.gov.au` robots fences only account paths, never
+    `/fuelwatch`. **`Product=1` alone returns the whole state (~940 stations) in one RSS GET** — no
+    station id in the feed, so the join key is composite `SUBURB|ADDRESS`; deal = below the station's
+    suburb average. Official WA-Govt regulator feed (petrolspy/spainfuel twin).
+  - **melbped** (AU foot-traffic): City of Melbourne migrated Socrata→**Opendatasoft**; the ODS Explore
+    API (`/api/explore/v2.1/.../records`) is keyless (robots fences only /login,/publish). Live
+    `past-hour-counts-per-minute` + `sensor-locations`, joined on `location_id`. **ODS caps `limit` at
+    100** (a 200 → HTTP 400). centi-count scalar; deal = above the network median.
+  - **mdcrivers / horizonsrivers** (NZ rivers): Marlborough (`hydro.marlborough.govt.nz`, robots 404)
+    and Horizons (`hilltopserver.horizons.govt.nz`, no robots) run open Hilltop servers — gwrivers
+    clones for two new regions. **Tasman (`envdata.tasman.govt.nz`) was skipped — robots `Disallow: /`**
+    (a fenced Hilltop, unlike GW/MDC/Horizons); several other councils' hosts don't resolve.
+  - **nswrfs / vicemergency / sacfs** (AU emergency): keyless GeoJSON/JSON incident feeds
+    (`rfs.nsw.gov.au/feeds/majorIncidents.json`, `emergency.vic.gov.au/public/osom-geojson.json`,
+    `data.eso.sa.gov.au/.../cfs_current_incidents.json`). Alert-level/response-level ordinal × 100 →
+    `drops` = de-escalation (volcano/nzroads pattern); an incident off the feed = resolved. NSW RFS
+    packs its fields into an RSS-style `description` (ALERT LEVEL / STATUS / SIZE...) — parsed out.
+  - **beachwatch / safeswim** (AU + NZ beach water quality): `api.beachwatch.nsw.gov.au/public/sites/
+    geojson` (245 NSW sites, star rating + pollution forecast) and `safeswim.org.nz/api/locations`
+    (315 NZ beaches, GREEN/RED/RED+/BLACK traffic-light; Next.js app, no real robots.txt → the
+    page-called same-origin API is keyless). safeswim is beachwatch's NZ twin; deal = a water-quality
+    alert. safeswim's `state`/`position` can arrive as native or str-repr — coerce with literal_eval.
+  - **Dropped/skipped this batch:** **nswair** (NSW air quality) — the `get_Observations` POST is
+    unusably slow (39s for 10 sites, >90s for all) and date-fragile; built then removed. **Tilde**
+    (GeoNet coastal/tsunami sea level) — `/v4/domains` + `/v4/dataSummary/{domain}` work but the
+    `/v4/data/...` path format wouldn't resolve ("path error 7"); parked. **BOM** — bot-blocked.
+    **OpenElectricity** keyless export is stale (Dec 2024). **GA earthquakes** — Angular SPA, API base
+    obscured. **SharkSmart** — data behind a third-party map embed. **WaterNSW realtime** — WAF 403.
 - **avalanche gate (2026-07-04, NZ Avalanche Advisory — invented, NZ-specific re-roll; weather/geohazard
   genre):** `avalanche.net.nz` 301s to `www.avalanche.net.nz`, whose robots is open (`User-agent: *`,
   `Disallow: /subscriptions/` only — the advisory/forecast data isn't fenced, no prose ban). SilverStripe
