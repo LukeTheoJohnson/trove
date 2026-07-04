@@ -72,6 +72,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
 | spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
 | sentry     | `sources/sentry.py`    | Sentry designation | **ephemeral** (the risk list *as issued*: ps/ip/ts revisions + when objects appear/retire; CNEOS publishes the current list and a bare removed-objects list, never the revision trajectory) | **high** (un-rebuildable revision drift; planetary defence) |
+| avalanche  | `sources/avalanche.py` | region slug        | **ephemeral** (the NZ backcountry avalanche danger rating *as issued* daily per region + its revision; NZAA serves the current advisory only, no public per-region danger-history series) | **high** (un-rebuildable forecast-drift; NZ geohazard, seasonal) |
 
 ### aviation
 | source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -180,6 +181,30 @@ high on this column.
 
 ## Notes
 
+- **avalanche gate (2026-07-04, NZ Avalanche Advisory — invented, NZ-specific re-roll; weather/geohazard
+  genre):** `avalanche.net.nz` 301s to `www.avalanche.net.nz`, whose robots is open (`User-agent: *`,
+  `Disallow: /subscriptions/` only — the advisory/forecast data isn't fenced, no prose ban). SilverStripe
+  + Vue app (`NZAA-Model-ForecastRegion` in the sitemap gave the 14 region slugs). The forecast data
+  isn't embedded in the page (Vue shell) — grepping the bundle `forecast/dist/main.js` found the API
+  wrapper `fetch(t) → GET /api/<t>`, called as `fetch("region")` + `fetch("forecast")`. Both are
+  keyless, same-origin, page-called → **sanctioned → trove**. Findings: (1) `GET /api/region` →
+  `{regions:[{id,title,urlSegment,latitude,longitude,...}]}` (13 forecast regions + a placeholder
+  "outside-forecast-region"); `GET /api/forecast` → `{forecasts:[…]}` — **all regions' current + prior
+  advisory in one GET** (26 forecasts for 13 regions), so the current one per region = max by `created`;
+  one poll = 2 memoized GETs. (2) Join key = region `urlSegment` (e.g. `queenstown`; stable, matches the
+  site URL). (3) Each forecast carries `altitudeDanger` = **three elevation bands** (rating 1-5, ordered
+  high→low: Alpine / Sub-alpine / Below treeline) — label by *position*, not the altitude bounds (they
+  share boundary values and mislabel the lowest band); **negative ratings (-1/-2) are "not rated"
+  sentinels**, excluded from the headline. Headline danger = max valid band rating; `price_cents` =
+  headline × 100 (centi-danger) so `drops` = the danger *easing* (geonet/volcano scalar reuse), `qty` =
+  number of avalanche problems, deal "danger" = headline ≥ 3 (Considerable — where most incidents occur).
+  (4) `avalancheDangers[]` = the problems (`character.title` = Wind Slab / Loose Wet / Persistent Slab…,
+  plus `trend` Increasing/NoChange/Decreasing, likelihood, size, aspects); `confidenceLevel`,
+  `forecaster`, `validPeriod` (24/48/72hrs) ride in flags. (5) **Seasonal**: off-season the payload has no
+  current forecasts → search empty, fetch None (series pauses, resumes when forecasting restarts). Build
+  snapshot (2026-07-04, mid-season): 13 regions live, 3 at Considerable & Increasing (Arthur's Pass,
+  Aoraki/Mt Cook, Aspiring). **High** hoard value — the as-issued daily danger + its revision is
+  un-rebuildable (NZAA archives no queryable per-region danger series).
 - **bikeshare gate (2026-07-04, GBFS bike-share availability — invented, both queues empty; opened the
   shared mobility genre):** GBFS (General Bikeshare Feed Specification, governed by NABSA) is the open
   data standard operators publish for trip-planner reuse (Google/Apple Maps, Transit, Citymapper) —

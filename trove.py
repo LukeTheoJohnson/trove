@@ -30,7 +30,7 @@ SOURCE_GROUPS = {
     "currency & macro":                 ("frankfurter",),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "attention & rank":                 ("hackernews", "appcharts"),
-    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "spaceweather", "sentry"),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "spaceweather", "sentry", "avalanche"),
     "aviation":                         ("chcflights", "zqnflights"),
     "roads & transport":                ("nzroads",),
     "shared mobility":                  ("bikeshare",),

@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-32 sources in nine genres (the same grouping `python trove.py` prints):
+33 sources in nine genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -83,6 +83,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | gwrivers| gauge site name     | NZ river flow/level + flood-onset rise (1.5x in 24h) | keyless GW Hilltop XML |
 | spaceweather | UTC forecast date | planetary Kp forecast: per-day peak + storm/aurora drift (Kp>=5 = aurora australis) | keyless NOAA SWPC feed |
 | sentry  | Sentry designation  | asteroid impact-risk drift: Palermo/Torino/impact-probability revisions, then retirement from the risk list | keyless JPL/CNEOS Sentry API |
+| avalanche | region slug       | NZ backcountry avalanche danger rating (1-5) per elevation band, as-issued daily + its revision (drift); deal = Considerable+ (>=3) | keyless page-called avalanche.net.nz /api/forecast |
 
 ### aviation
 | source  | join key            | timeline value                         | API                          |
