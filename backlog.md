@@ -79,6 +79,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | chcflights | `sources/chcflights.py`  | dir:type:flightNo:scheduled | **ephemeral** (a flight's estimate/gate/status drift from schedule in the hours before it operates; the board drops it once it operates and no public archive keeps the minute-by-minute progression) | **high** |
 | zqnflights | `sources/zqnflights.py`  | dir:flightNo:schDate:schTime | **ephemeral** (same class as chcflights — and ZQN's weather-prone alpine runway makes its board NZ's most disruption-rich) | **high** |
 
+### roads & transport
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| nzroads    | `sources/nzroads.py`   | NZTA event id | **ephemeral** (a road event's impact escalation/easing + resolution lifecycle; the feed serves current state only and no public archive keeps the per-event progression) | **high** |
+
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
 high on this column.
@@ -170,6 +175,24 @@ high on this column.
 
 ## Notes
 
+- **nzroads gate (2026-07-04, NZTA Journeys highway disruptions — invented, both queues empty):**
+  `www.journeys.nzta.govt.nz/robots.txt` is `User-agent: *` + `Crawl-delay: 10` — zero Disallow, no
+  prose ban (honoured trivially: one memoized GET serves a whole run). The marketing host
+  `www.nzta.govt.nz` sits behind an Imperva/Incapsula challenge, but the journeys host serves
+  plainly — gate the host you'll actually hit, not the brand's front door. The map's React bundle
+  joins `"/assets/map-data-cache/" + "delays.json"` → one keyless page-called GET returns the whole
+  national board (~109 events: closures/hazards/roadworks/warnings + a top-level `lastUpdated`
+  epoch). Page-called + unfenced = sanctioned → trove; opened the **roads & transport** genre. Key
+  findings: (1) join key = `properties.id` (NZTA ExternalId), stable across the event's life; no
+  by-id endpoint, so fetch scans the memoized feed (petrolspy pattern) and a vanished event =
+  resolved = the series ends — that retirement is half the hoard. (2) scalar = **impact ordinal**
+  (Road Closed=4, Vehicle Restrictions=3, Delays=2, Caution=1) * 100 in `price_cents`, so core
+  `drops` = a de-escalation (the volcano pattern pointed at roads). (3) the honest deal split is
+  `IsPlanned==0 and Status=="Active" and >= Delays` — 89 of 109 events are scheduled roadworks; the
+  4 live unplanned disruptions at build (SH 5 ice closure, SH 8 crash, SH 94 Milford vehicle
+  restrictions, SH 29 closure) were exactly the newsworthy set. (4) geometry mixes Point and
+  MultiLineString — take the first vertex as the representative coord. (5) 2 of 109 features are
+  "News" items with null Impact/Status — severity 0, handled, never a deal.
 - **frankfurter gate (2026-07-03, ECB FX — invented for the "lots of historic data in one poll"
   steer):** both `api.frankfurter.dev` and `frankfurter.dev` robots are `User-agent: * / Allow: /`
   (zero Disallow), and Frankfurter is an official, open-source (lineofflight/frankfurter), keyless,

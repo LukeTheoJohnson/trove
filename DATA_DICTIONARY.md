@@ -114,6 +114,11 @@ Grouped by genre (same sections as the `--help` listing and the backlog).
 | chcflights | **not money** — `price_cents` = **delay in minutes** (estimate − scheduled; negative = early, `0` = currently expected on time), so `drops` = a flight that *recovered* (delay shrank); deal = delayed ≥ 15 min or cancelled. money() cosmetically renders the delay as dollars in the watchlist + poll DROP line only | `status`, `gate`, `estimate`, `scheduled`, `delay_min`, `cancelled`, `delayed`, `route`, `direction`, `type`, `last_updated` | `flight_no`, `codeshares`, `airline`, `airline_code`, `route`, `direction`, `type`, `scheduled`, `image_url` |
 | zqnflights | **not money** — `price_cents` = **delay in minutes** (estimate − scheduled, an honest datetime diff — ZQN serves full ISO date+time pairs; `0` = currently expected on time), so `drops` = a flight that *recovered*; deal = delayed ≥ 15 min or cancelled. Same money() cosmetic as chcflights | `status`, `scheduled`, `estimate`, `delay_min`, `cancelled`, `delayed`, `route`, `direction`, `domestic` | `flight_no`, `codeshares`, `from`, `to`, `route`, `direction`, `domestic`, `scheduled` |
 
+### roads & transport
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| nzroads | **not money** — `price_cents` = **impact severity × 100** (centi-severity: Road Closed=400, Vehicle Restrictions=300, Delays=200, Caution=100, info=0), so `drops` = a *de-escalation* (the road recovering); an event gone from the feed = resolved (fetch returns nothing, the series ends); `qty` = regions touched; deal = unplanned + active + ≥ Delays. money() renders centi-severity as $ in the watchlist + poll DROP line only (geonet/volcano precedent) | `impact`, `severity`, `type`, `status`, `planned`, `critical`, `description`, `comments`, `expected`, `last_edited` | `event_type`, `description`, `location`, `island`, `planned`, `source`, `start`, `regions`, `lat`, `lon`, `url` |
+
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored
 per-row, so record which `--cc` a source is polled with if you mix them downstream.

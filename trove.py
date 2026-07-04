@@ -32,6 +32,7 @@ SOURCE_GROUPS = {
     "attention & rank":                 ("hackernews", "appcharts"),
     "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "spaceweather", "sentry"),
     "aviation":                         ("chcflights", "zqnflights"),
+    "roads & transport":                ("nzroads",),
 }
 SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)
 

@@ -90,6 +90,11 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | chcflights | dir:type:flightNo:scheduled | Christchurch Airport flight delay-drift (estimate vs schedule) + gate/status churn; deal = delayed/cancelled | keyless christchurchairport.co.nz /api/flights JSON |
 | zqnflights | dir:flightNo:schDate:schTime | Queenstown Airport delay-drift + status churn (NZ's most disruption-prone board); deal = delayed/cancelled | keyless queenstownairport.co.nz /api/flights JSON |
 
+### roads & transport
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| nzroads | NZTA event id       | national highway disruption lifecycle: impact escalating/easing (Caution/Delays/Road Closed), then resolution (the event vanishes); deal = an unplanned active disruption | keyless page-called journeys.nzta.govt.nz delays.json |
+
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
 
