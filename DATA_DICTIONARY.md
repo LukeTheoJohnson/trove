@@ -119,6 +119,11 @@ Grouped by genre (same sections as the `--help` listing and the backlog).
 |--------|----------------------------|--------------|--------------|
 | nzroads | **not money** — `price_cents` = **impact severity × 100** (centi-severity: Road Closed=400, Vehicle Restrictions=300, Delays=200, Caution=100, info=0), so `drops` = a *de-escalation* (the road recovering); an event gone from the feed = resolved (fetch returns nothing, the series ends); `qty` = regions touched; deal = unplanned + active + ≥ Delays. money() renders centi-severity as $ in the watchlist + poll DROP line only (geonet/volcano precedent) | `impact`, `severity`, `type`, `status`, `planned`, `critical`, `description`, `comments`, `expected`, `last_edited` | `event_type`, `description`, `location`, `island`, `planned`, `source`, `start`, `regions`, `lat`, `lon`, `url` |
 
+### shared mobility
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| bikeshare | **not money** — `price_cents` = **bikes available × 100** (centi-bike), so `drops` = a station that has *drained* below where first seen; `qty` = docks free (the returner's view); deal "stockout risk" = a renting station running dry (≤ 2 bikes). `--cc` picks the GBFS system (default `citibike`; also `baywheels`/`capitalbikeshare`/`divvy`), embedded in the join key so mixed-system watchlists stay coherent; a station gone from the feed ends its series. money() renders centi-bike as $ in the watchlist + poll DROP line only (geonet/appcharts precedent) | `system`, `bikes`, `ebikes`, `docks`, `bikes_disabled`, `docks_disabled`, `capacity`, `renting`, `returning`, `installed`, `last_reported` | `system`, `station_id`, `short_name`, `region_id`, `capacity`, `lat`, `lon` |
+
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored
 per-row, so record which `--cc` a source is polled with if you mix them downstream.

@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-30 sources in seven genres (the same grouping `python trove.py` prints):
+32 sources in nine genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -94,6 +94,11 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | nzroads | NZTA event id       | national highway disruption lifecycle: impact escalating/easing (Caution/Delays/Road Closed), then resolution (the event vanishes); deal = an unplanned active disruption | keyless page-called journeys.nzta.govt.nz delays.json |
+
+### shared mobility
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes) | keyless open GBFS station feed |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).

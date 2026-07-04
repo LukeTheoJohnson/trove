@@ -84,6 +84,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 |------------|------------------------|------------|----------------------------------|-------------|
 | nzroads    | `sources/nzroads.py`   | NZTA event id | **ephemeral** (a road event's impact escalation/easing + resolution lifecycle; the feed serves current state only and no public archive keeps the per-event progression) | **high** |
 
+### shared mobility
+| source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
+|------------|-------------------------|-------------------|----------------------------------|-------------|
+| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series) | **high** |
+
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
 high on this column.
@@ -175,6 +180,29 @@ high on this column.
 
 ## Notes
 
+- **bikeshare gate (2026-07-04, GBFS bike-share availability — invented, both queues empty; opened the
+  shared mobility genre):** GBFS (General Bikeshare Feed Specification, governed by NABSA) is the open
+  data standard operators publish for trip-planner reuse (Google/Apple Maps, Transit, Citymapper) —
+  keyless, published-for-reuse = textbook sanctioned → trove. Gate findings: (1) the feed hosts
+  (`gbfs.citibikenyc.com`, the shared data host `gbfs.lyft.com`, and the other systems' discovery hosts)
+  all return **403 AccessDenied on `/robots.txt`** — an S3 "no such object" response = *no robots file =
+  unfenced* (the SWPC 404-unfenced class, just a different HTTP code for a missing object). (2) The
+  design resolves each system's **official discovery document** (`gbfs.json`) at runtime and reads the
+  `station_information` + `station_status` feed URLs from it (prefer the `en` language block) rather than
+  hardcoding Lyft paths — resilient to host/path drift and works for any GBFS operator. Verified four
+  systems live: citibike (NYC, default), baywheels (SF), capitalbikeshare (DC), divvy (Chicago). (3)
+  station_information is static (name/lat/lon/capacity), station_status is the ephemeral truth
+  (`num_bikes_available`, `num_ebikes_available`, `num_docks_available`, `is_renting`, `last_reported`) —
+  merged by `station_id`; the merge is driven by the live status list. (4) Scarcity tracker, same shape
+  as eventcinemas: no price in the feed, the tracked scalar is availability. `price_cents` = bikes
+  available × 100 (centi-bike, so `drops` = a station draining below first-seen), `qty` = docks free,
+  deal "stockout risk" = a renting station with ≤2 bikes (running dry — grab one now / rebalancing
+  candidate). Composite join key `system:station_id` (split on the first `:` since ids are UUIDs; the
+  prefix lets fetch/poll rebuild the right feed — appcharts pattern). (5) A station gone from the feed =
+  fetch returns None = the series ends (reverb/turners/nzroads retirement pattern). Honest hoard value
+  **high**: the per-station fill/empty cycle is genuinely un-rebuildable — no public archive keeps
+  historic availability per station. Build snapshot: citibike 2459 stations; 65 St & Broadway sat at 2
+  bikes (both e-bikes) / 14 docks = a live stockout risk.
 - **nzroads gate (2026-07-04, NZTA Journeys highway disruptions — invented, both queues empty):**
   `www.journeys.nzta.govt.nz/robots.txt` is `User-agent: *` + `Crawl-delay: 10` — zero Disallow, no
   prose ban (honoured trivially: one memoized GET serves a whole run). The marketing host
