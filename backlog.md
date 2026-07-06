@@ -42,6 +42,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | octopus    | `sources/octopus.py`   | GSP group (A-P) | archived (the official API serves the **full** realized half-hourly rate history, paginated) | low-med (PoC; UK retail twin of em6, completes the electricity genre both hemispheres) |
 | aemo       | `sources/aemo.py`      | NEM region      | **ephemeral** (5-min NEM dispatch price + demand + interconnector flow snapshot; AEMO archives settled prices but not the convenient live per-region series) | med (AU twin of em6; NEM prices can go negative) |
 | fuelwatch  | `sources/fuelwatch.py` | suburb:address  | **ephemeral** (WA's legally-fixed daily forecourt price per station, overwritten each day, never archived per-station) | **high** (AU/WA twin of petrolspy/spainfuel; official regulator feed) |
+| awattar    | `sources/awattar.py`   | market (de/at)  | archived (the marketdata endpoint serves the full realized hourly history by `start`/`end`) | low-med (PoC; EU EPEX twin of em6/aemo — demonstrates the `Obs.history` backfill (~90d hourly in one `item`); negative-price plunge flex) |
+| carbonintensity | `sources/carbonintensity.py` | GB region (1-17) | **ephemeral** (the per-region carbon-intensity *forecast as issued*; NG ESO archives realized intensity but not the as-issued regional forecast series) | med-high (forecast-drift class; carbon twin of the electricity-price set) |
 
 ### currency & macro
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -73,8 +75,6 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | volcano    | `sources/volcano.py`   | volcanoID       | archived (GeoNet VAL bulletins) | low-med (NZ geohazard suite w/ geonet; clean state series) |
 | nzski      | `sources/nzski.py`     | resort data-slug | **ephemeral** (daily base depth + lifts/trails/open-closed churn, overwritten through the day, gone at season end; never archived) | **high** |
 | gwrivers   | `sources/gwrivers.py`  | gauge site name | **ephemeral** (5-min river flow/level telemetry; GW archives it but no convenient unified per-gauge series) | med-high (live flood watch) |
-| spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
-| sentry     | `sources/sentry.py`    | Sentry designation | **ephemeral** (the risk list *as issued*: ps/ip/ts revisions + when objects appear/retire; CNEOS publishes the current list and a bare removed-objects list, never the revision trajectory) | **high** (un-rebuildable revision drift; planetary defence) |
 | avalanche  | `sources/avalanche.py` | region slug        | **ephemeral** (the NZ backcountry avalanche danger rating *as issued* daily per region + its revision; NZAA serves the current advisory only, no public per-region danger-history series) | **high** (un-rebuildable forecast-drift; NZ geohazard, seasonal) |
 | mdcrivers  | `sources/mdcrivers.py` | gauge site name    | **ephemeral** (Marlborough NZ river flow/level telemetry; no convenient unified per-gauge series) | med-high (NZ flood watch; gwrivers sibling, different region) |
 | horizonsrivers | `sources/horizonsrivers.py` | gauge site name | **ephemeral** (Manawatu-Whanganui NZ river flow/level telemetry) | med-high (NZ flood watch; flood-prone region) |
@@ -83,22 +83,40 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | sacfs      | `sources/sacfs.py`     | incident id        | **ephemeral** (an SA CFS incident's response level + status lifecycle, then closed) | med-high (AU emergency; all incident types) |
 | beachwatch | `sources/beachwatch.py`| site id (uuid)     | **ephemeral** (NSW beach daily pollution forecast + water-quality rating, changes with rainfall, not archived per-site) | **high** (AU beach water quality) |
 | safeswim   | `sources/safeswim.py`  | beach slug         | **ephemeral** (NZ beach water-quality traffic-light flipping GREEN/RED with stormwater; no per-beach live archive) | **high** (NZ twin of beachwatch) |
+| eafloods   | `sources/eafloods.py`  | flood-area id      | **ephemeral** (England flood warnings *in force*: the Alert->Warning->Severe escalate/ease/resolve lifecycle; the EA serves only the current set, no queryable per-area warning history) | **high** (event-driven, often empty in dry spells — avalanche pattern; OGL sanctioned) |
+
+### space
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| spaceweather | `sources/spaceweather.py` | UTC forecast date | **ephemeral** (the Kp/storm forecast *as issued* + its drift toward each target date; SWPC archives realized Kp but not the forecast-revision series) | **high** (un-rebuildable forecast-drift, aurora-australis signal) |
+| sentry     | `sources/sentry.py`    | Sentry designation | **ephemeral** (the risk list *as issued*: ps/ip/ts revisions + when objects appear/retire; CNEOS publishes the current list and a bare removed-objects list, never the revision trajectory) | **high** (un-rebuildable revision drift; planetary defence) |
+| spacelaunch | `sources/spacelaunch.py` | LL2 launch id | **ephemeral** (an upcoming launch's readiness + `net` *as scheduled*: the slip/scrub drift in the days before it flies; LL2 serves the current best estimate only, no as-issued schedule history) | med-high (un-rebuildable schedule-drift; metno/sentry class) |
 
 ### aviation
 | source     | `sources/…`              | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|--------------------------|------------|----------------------------------|-------------|
 | chcflights | `sources/chcflights.py`  | dir:type:flightNo:scheduled | **ephemeral** (a flight's estimate/gate/status drift from schedule in the hours before it operates; the board drops it once it operates and no public archive keeps the minute-by-minute progression) | **high** |
 | zqnflights | `sources/zqnflights.py`  | dir:flightNo:schDate:schTime | **ephemeral** (same class as chcflights — and ZQN's weather-prone alpine runway makes its board NZ's most disruption-rich) | **high** |
+| opensky    | `sources/opensky.py`   | icao24 (in a bbox) | **ephemeral** (live aircraft state vectors over a region; anonymous OpenSky serves the live snapshot only — history needs a contributor account) | med-high (un-rebuildable for anon; region-wide complement to the single-airport boards) |
 
 ### roads & transport
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | nzroads    | `sources/nzroads.py`   | NZTA event id | **ephemeral** (a road event's impact escalation/easing + resolution lifecycle; the feed serves current state only and no public archive keeps the per-event progression) | **high** |
+| tfl        | `sources/tfl.py`       | line id       | **ephemeral** (each London line's status ordinal flipping Good->Minor/Severe Delays->Part Suspended through the day; TfL serves current state only, no queryable per-line status history) | **high** (transit-status drift; London) |
+| mbta       | `sources/mbta.py`      | alert id      | **ephemeral** (a Boston MBTA service alert's severity/effect lifecycle then it clears; only the current set is served) | med-high (transit alerts; twin mechanic to tfl) |
+| swisstransport | `sources/swisstransport.py` | station\|line\|to\|schedTs | **ephemeral** (a Swiss rail/tram departure's delay drift in the minutes before it leaves, then it's gone; only the live board is served) | med-high (rail delay-drift; twin of chc/zqnflights) |
 
 ### shared mobility
 | source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
 |------------|-------------------------|-------------------|----------------------------------|-------------|
 | bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series) | **high** |
+| sgtaxi     | `sources/sgtaxi.py`    | sg (whole fleet) | **ephemeral** (Singapore's island-wide roaming-taxi count swinging with demand/weather; data.gov.sg serves the live count only, no per-minute history) | med-high (shared-mobility supply index; complements bikeshare's per-station view) |
+
+### parking
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| sgcarpark  | `sources/sgcarpark.py` | carpark number | **ephemeral** (~2,000 HDB car parks' free-space counts draining/refilling through the day; data.gov.sg serves current state only, no per-park availability history) | **high** (opens the parking genre; scarcity twin of bikeshare/eventcinemas) |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -155,6 +173,20 @@ high on this column.
 
 ## Skipped
 
+- **NWS / weather.gov alerts (US)** `[skipped] 2026-07-06` — `api.weather.gov/robots.txt` is
+  `User-agent: * / Disallow: /` — the **entire** official API is robots-fenced. Hard skip (CheapShark
+  class), even though it's keyless + documented and the active-alerts feed would have been a nice
+  ephemeral-warning source. A US weather-warning hoard needs a differently-served provider.
+- **FAA airport status (ASWS)** `[skipped] 2026-07-06` — `soa.smext.faa.gov` (the Airport Status Web
+  Service host) does not resolve from here (NXDOMAIN) — dead or geo/DNS-blocked. Couldn't even reach
+  robots; re-roll. (The old `services.faa.gov/airport/status/{code}` was retired years ago.)
+- **Wikipedia most-read / pageviews** `[dropped] 2026-07-06` — gate is fine (api.wikimedia.org serves
+  no real robots), but the daily most-read ranking is **rebuildable** from the public Pageviews API /
+  dumps (frankfurter class) *and* it would be a fourth low-value entry in attention & rank. Not worth
+  building over a higher-value ephemeral source.
+- **GitHub trending / top repos** `[dropped] 2026-07-06` — `api.github.com/robots.txt` 404 (unfenced)
+  and the search API is keyless, but per-repo star history is **rebuildable** from GH Archive
+  (gharchive.org records every WatchEvent) → low hoard value. Dropped for the same reason as Wikipedia.
 - **CoinGecko** `[skipped] 2026-07-03` — `api.coingecko.com/robots.txt` fences the data paths
   outright: `Disallow: /api/v1`, `/api/v2`, `/api/v3`, `/api/mobile`. The exact endpoints the
   keyless tier serves are disallowed for `User-agent: *` = CheapShark skip class. Closes Active

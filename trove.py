@@ -26,14 +26,16 @@ DATA_DIR = os.path.join(ROOT, "data")
 # from it. Adding a source = drop its name into the right group below.
 SOURCE_GROUPS = {
     "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "epic", "steammarket"),
-    "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus", "aemo", "fuelwatch"),
+    "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus", "aemo", "fuelwatch", "awattar", "carbonintensity"),
     "currency & macro":                 ("frankfurter",),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "attention & rank":                 ("hackernews", "appcharts", "melbped"),
-    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "spaceweather", "sentry", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "sacfs", "safeswim"),
-    "aviation":                         ("chcflights", "zqnflights"),
-    "roads & transport":                ("nzroads",),
-    "shared mobility":                  ("bikeshare",),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "sacfs", "safeswim", "eafloods"),
+    "space":                            ("spaceweather", "sentry", "spacelaunch"),
+    "aviation":                         ("chcflights", "zqnflights", "opensky"),
+    "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport"),
+    "shared mobility":                  ("bikeshare", "sgtaxi"),
+    "parking":                          ("sgcarpark",),
 }
 SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)
 

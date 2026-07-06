@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-43 sources in nine genres (the same grouping `python trove.py` prints):
+53 sources in eleven genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -53,6 +53,8 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | octopus | GSP group (A-P)     | UK Agile Octopus half-hourly unit rate (p/kWh) + cheap-window/plunge deal | keyless official Octopus API |
 | aemo    | NEM region (NSW1...)| AU National Electricity Market 5-min spot price ($/MWh) + demand + interconnector flows; deal = below the 5-region avg (or negative) | keyless AEMO visualisations API |
 | fuelwatch | suburb:address    | WA per-station fuel price (ULP cents/L, legally fixed daily) + below-suburb-avg deal | keyless WA Govt FuelWatch RSS |
+| awattar | market (de/at)      | Germany/Austria EPEX day-ahead hourly spot (Eur/MWh); one `item` seeds ~90 days of hourly history; deal = below the window avg (negative = plunge) | keyless aWATTar marketdata API |
+| carbonintensity | GB region (1-17) | Great Britain grid carbon intensity forecast (gCO2/kWh) + generation mix, as-issued (drift); deal = index "very low"/"low" | keyless National Grid ESO Carbon Intensity API |
 
 ### currency & macro
 | source  | join key            | timeline value                         | API                          |
@@ -84,8 +86,6 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | volcano | volcanoID           | NZ volcanic alert level (0-5) + unrest escalation | keyless GeoNet VAL API |
 | nzski   | resort data-slug    | NZ ski-field base depth + lifts/trails open (open = deal) | page-called NZSki feed |
 | gwrivers| gauge site name     | NZ river flow/level + flood-onset rise (1.5x in 24h) | keyless GW Hilltop XML |
-| spaceweather | UTC forecast date | planetary Kp forecast: per-day peak + storm/aurora drift (Kp>=5 = aurora australis) | keyless NOAA SWPC feed |
-| sentry  | Sentry designation  | asteroid impact-risk drift: Palermo/Torino/impact-probability revisions, then retirement from the risk list | keyless JPL/CNEOS Sentry API |
 | avalanche | region slug       | NZ backcountry avalanche danger rating (1-5) per elevation band, as-issued daily + its revision (drift); deal = Considerable+ (>=3) | keyless page-called avalanche.net.nz /api/forecast |
 | mdcrivers | gauge site name   | Marlborough (NZ) river flow/level + flood-onset rise (1.5x in 24h) | keyless MDC Hilltop XML |
 | horizonsrivers | gauge site name | Manawatu-Whanganui (NZ) river flow/level + flood-onset rise | keyless Horizons Hilltop XML |
@@ -94,22 +94,40 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | sacfs   | incident id         | South Australia (AU) CFS incidents: response level + status (GOING->CONTROLLED); deal = still GOING | keyless SA CFS feed |
 | beachwatch | site id (uuid)   | NSW (AU) beach water-quality star rating + daily pollution forecast; deal = pollution Possible/Likely (swim advisory) | keyless NSW Beachwatch GeoJSON |
 | safeswim | beach slug        | NZ beach water-quality traffic-light (GREEN/RED/RED+/BLACK), flips with rainfall; deal = a water-quality alert | keyless page-called Safeswim API |
+| eafloods | flood-area id      | England live flood warnings/alerts: severity lifecycle (Alert->Warning->Severe->stood down), then the area drops off the feed; deal = a live Flood Warning+ (event-driven, often empty in dry spells) | keyless EA flood-monitoring API (OGL) |
+
+### space
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| spaceweather | UTC forecast date | planetary Kp forecast: per-day peak + storm/aurora drift (Kp>=5 = aurora australis) | keyless NOAA SWPC feed |
+| sentry  | Sentry designation  | asteroid impact-risk drift: Palermo/Torino/impact-probability revisions, then retirement from the risk list | keyless JPL/CNEOS Sentry API |
+| spacelaunch | LL2 launch id (uuid) | upcoming rocket launch readiness (Go/TBC/TBD/Hold) + the NET slip as-scheduled (drift), then it flies and leaves `upcoming`; deal = Go within 24h | keyless Launch Library 2 (thespacedevs) |
 
 ### aviation
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | chcflights | dir:type:flightNo:scheduled | Christchurch Airport flight delay-drift (estimate vs schedule) + gate/status churn; deal = delayed/cancelled | keyless christchurchairport.co.nz /api/flights JSON |
 | zqnflights | dir:flightNo:schDate:schTime | Queenstown Airport delay-drift + status churn (NZ's most disruption-prone board); deal = delayed/cancelled | keyless queenstownairport.co.nz /api/flights JSON |
+| opensky | icao24 (in a bbox)  | live aircraft over a region (`--cc` picks the box: nz/au/uk/nyc/sf/la): altitude/speed/heading snapshot, un-rebuildable anon; deal = airborne, <3000m and descending (on approach) | keyless OpenSky Network state vectors (anon) |
 
 ### roads & transport
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | nzroads | NZTA event id       | national highway disruption lifecycle: impact escalating/easing (Caution/Delays/Road Closed), then resolution (the event vanishes); deal = an unplanned active disruption | keyless page-called journeys.nzta.govt.nz delays.json |
+| tfl     | line id             | London Underground/DLR/Overground/Elizabeth line status ordinal (Good Service -> Minor/Severe Delays -> Part Suspended) drifting through the day; deal = any non-Good-Service | keyless TfL Unified API |
+| mbta    | alert id            | Boston MBTA service alerts: severity (0-10) + effect lifecycle, then the alert clears; deal = a serious effect (suspension/shuttle) or severity>=7 | keyless MBTA V3 JSON:API |
+| swisstransport | station\|line\|to\|schedTs | Swiss rail/tram departure delay-drift in the minutes before it leaves, then it's gone; deal = running >=3 min late | keyless transport.opendata.ch stationboard |
 
 ### shared mobility
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes) | keyless open GBFS station feed |
+| sgtaxi  | sg (whole fleet)    | Singapore roaming-taxi supply: the island-wide available-taxi count swinging with demand/weather; deal = below 2,000 (tight supply) | keyless data.gov.sg taxi-availability |
+
+### parking
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| sgcarpark | carpark number    | Singapore HDB car-park free-space count draining/refilling through the day (never archived per-park); deal = <=10 free car spaces (nearly full) | keyless data.gov.sg carpark-availability |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
