@@ -116,7 +116,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### parking
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
-| sgcarpark  | `sources/sgcarpark.py` | carpark number | **ephemeral** (~2,000 HDB car parks' free-space counts draining/refilling through the day; data.gov.sg serves current state only, no per-park availability history) | **high** (opens the parking genre; scarcity twin of bikeshare/eventcinemas) |
+| chcparking | `sources/chcparking.py` | park id   | **ephemeral** (Christchurch parking buildings' free-space counts through the day; CCC SmartView serves the live snapshot only, no per-park history) | **high** (NZ member of the parking genre; the keyless NZ live-parking source — AT is keyed, other councils use the private Frogparking app) |
+| sgcarpark  | `sources/sgcarpark.py` | carpark number | **ephemeral** (~2,000 HDB car parks' free-space counts draining/refilling through the day; data.gov.sg serves current state only, no per-park availability history) | **high** (opened the parking genre; scarcity twin of bikeshare/eventcinemas) |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim

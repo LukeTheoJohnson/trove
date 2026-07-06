@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-53 sources in eleven genres (the same grouping `python trove.py` prints):
+54 sources in eleven genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -127,6 +127,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 ### parking
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
+| chcparking | park id           | Christchurch (NZ) parking-building free-space count draining/refilling through the day (never archived per-park); deal = <=20 free spaces (nearly full) | keyless page-called CCC SmartView /api/parking |
 | sgcarpark | carpark number    | Singapore HDB car-park free-space count draining/refilling through the day (never archived per-park); deal = <=10 free car spaces (nearly full) | keyless data.gov.sg carpark-availability |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few

@@ -151,6 +151,7 @@ Grouped by genre (same sections as the `--help` listing and the backlog).
 ### parking
 | source | `price_cents` denomination | `flags` keys | `extra` keys |
 |--------|----------------------------|--------------|--------------|
+| chcparking | **not money** — `price_cents` = **free spaces × 100** (centi-space), so `drops` = a Christchurch parking building *filling up*; `qty` = capacity (`free`+`occupied`, when sane); deal "fullrisk" = a **reliable** building ≤ 20 free spaces. The feed repeats some buildings (collapsed by `park_id`, first kept) and a failing sensor can report nonsense (negative `occupied`, absurd `free`) → logged faithfully but `reliable=False` so it never registers as a deal. money() renders centi-spaces as $ in the 2 hardcoded spots | `free`, `occupied`, `capacity`, `status`, `reliable` | `park_id` |
 | sgcarpark | **not money** — `price_cents` = **free car (`C`) spaces × 100** (centi-lot), so `drops` = a car park *filling up*; `qty` = total car lots (capacity); deal "fullrisk" = ≤ 10 free car spaces (nearly full). A park gone from the feed pauses its series. money() renders centi-lots as $ in the 2 hardcoded spots | `available`, `total`, `by_type` (lot_type -> `{avail,total}`), `updated` | `carpark_number` |
 
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
