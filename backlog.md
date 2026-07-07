@@ -119,6 +119,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | chcparking | `sources/chcparking.py` | park id   | **ephemeral** (Christchurch parking buildings' free-space counts through the day; CCC SmartView serves the live snapshot only, no per-park history) | **high** (NZ member of the parking genre; the keyless NZ live-parking source — AT is keyed, other councils use the private Frogparking app) |
 | sgcarpark  | `sources/sgcarpark.py` | carpark number | **ephemeral** (~2,000 HDB car parks' free-space counts draining/refilling through the day; data.gov.sg serves current state only, no per-park availability history) | **high** (opened the parking genre; scarcity twin of bikeshare/eventcinemas) |
 
+### utilities & outages
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| outages    | `sources/outages.py`   | network:ORDER_ID | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; Powercor VIC AU, roadmap-driven trial pick 2026-07-07) |
+
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
 high on this column.

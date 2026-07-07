@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-54 sources in eleven genres (the same grouping `python trove.py` prints):
+55 sources in twelve genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -129,6 +129,11 @@ things that vary per source are the **ID format** and whether `search` is free-t
 |---------|---------------------|----------------------------------------|------------------------------|
 | chcparking | park id           | Christchurch (NZ) parking-building free-space count draining/refilling through the day (never archived per-park); deal = <=20 free spaces (nearly full) | keyless page-called CCC SmartView /api/parking |
 | sgcarpark | carpark number    | Singapore HDB car-park free-space count draining/refilling through the day (never archived per-park); deal = <=10 free car spaces (nearly full) | keyless data.gov.sg carpark-availability |
+
+### utilities & outages
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| outages | network:ORDER_ID    | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers | keyless ArcGIS Feature Service (Powercor, VIC AU) |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).

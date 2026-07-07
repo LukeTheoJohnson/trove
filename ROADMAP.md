@@ -1,0 +1,160 @@
+# trove — landscape map + source roadmap
+
+This is the **forward** planning doc for `/daily-tool-drop`: a map of the digital landscape trove
+already captures, an honest read of the **white space**, and a **scoped, gate-vetted hitlist** of
+future sources ranked so a drop can pick the top unblocked item instead of re-deriving a target from
+scratch each run.
+
+- **`backlog.md`** = the *retrospective* log (ported sources, gate records, skip rulings). Look there
+  for "what did we build and why did we skip X".
+- **`ROADMAP.md`** (this file) = the *prospective* hitlist ("what to build next and where the gaps
+  are"). `/daily-tool-drop` should read this first and pick from Tier 1 unless the steer says otherwise.
+
+The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard un-rebuildable *state*;
+skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
+then sanctioned-first**.
+
+_Last mapped: 2026-07-07 (55 sources, 12 genres). Gate notes marked ✅/🟡/⛔ reflect live recon on
+that date — re-verify a host's robots before building; postures drift._
+
+---
+
+## 1. The landscape trove captures today
+
+trove's coverage is best read on **three axes**: domain (genre), signal *mechanic* (the shape of the
+ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop target.
+
+### Axis A — domain / genre (12)
+
+| genre | sources | depth |
+|-------|---------|-------|
+| games / media / collectibles | steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, epic, steammarket | deep |
+| fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity | deep |
+| currency & macro | frankfurter | **thin (1)** |
+| deals, fares & listings | grabone, grabaseat, bookme, turners, eventcinemas, reverb | good |
+| attention & rank | hackernews, appcharts, melbped | medium |
+| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods | deepest |
+| space | spaceweather, sentry, spacelaunch | medium |
+| aviation | chcflights, zqnflights, opensky | medium |
+| roads & transport | nzroads, tfl, mbta, swisstransport | medium |
+| shared mobility | bikeshare, sgtaxi | thin |
+| parking | chcparking, sgcarpark | thin |
+| **utilities & outages** | outages *(new 2026-07-07)* | **thin (1) — opened this run** |
+
+**Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
+rentals (listing lifecycle) · jobs / labour market · streaming & content availability (leaving/arriving)
+· marine / maritime (AIS, port congestion, tides) · sports (scores, odds-drift — gambling, off-brand for
+a public repo) · agriculture / commodities (dairy, livestock) · air quality · telecom / internet status
+· civic / government (tenders, court lists, consents, processing queues) · retail in-stock flips ·
+dining / reservation availability.
+
+### Axis B — signal mechanic (the "data type")
+
+| mechanic | what it hoards | sources |
+|----------|----------------|---------|
+| price (per-entity) | an item's price over time | steam, discogs, itunes, TCG trio, all fuel/electricity, frankfurter, grabone/grabaseat, reverb, steammarket |
+| scarcity / availability count | units left, filling/draining | eventcinemas, bikeshare, sgcarpark, chcparking, sgtaxi, bookme, **outages (customers)** |
+| status / alert ordinal | a state escalating/easing | volcano, nzroads, tfl, mbta, nswrfs, vicemergency, sacfs, avalanche, beachwatch, safeswim, eafloods, **outages (crew status)** |
+| forecast-drift | a prediction + its revision | metno, spaceweather, carbonintensity, sentry, spacelaunch, **outages (ETR)** |
+| delay-drift | estimate vs schedule | chcflights, zqnflights, swisstransport |
+| rank / attention | where eyeballs/crowds are | hackernews, appcharts, melbped |
+| magnitude / telemetry | a measured live value | geonet, gwrivers/mdcrivers/horizonsrivers, opensky (altitude) |
+| listing lifecycle | appear → markdown → vanish | turners, reverb, discogs, grabone |
+
+**Mechanic white space (under-exploited even where a domain exists):**
+- **auction dynamics** — opening→closing price, bid velocity, sniping. Nothing tracks a *live auction
+  clock*. (turners has live-auction cars but hoards the asking price, not the bid trajectory.)
+- **queue / wait-time** — people/jobs ahead of you (ED wait, passport/visa processing, support queue).
+  Zero coverage; a genuinely new scalar shape.
+- **occupancy / utilisation %** — gym/library/venue busyness, crowd density (beyond parking & docks).
+
+### Axis C — geography
+
+| region | strength | notes |
+|--------|----------|-------|
+| NZ | **very deep** | fuel, electricity, rivers×3, ski, avalanche, beaches, roads, flights×2, parking, quakes, volcano |
+| AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC)** |
+| UK | good | octopus, carbonintensity, tfl, eafloods |
+| EU | some | awattar (DE/AT), swisstransport (CH), frankfurter |
+| US | **thin vs its open-data richness** | mbta, opensky bbox, bikeshare (4 cities) — NWS is robots-fenced, but USGS/NOAA/Socrata/data.gov are wide open |
+| SG | narrow | taxi, carpark |
+| rest of world | **none** | Canada, Japan, wider Asia, LatAm, Africa untouched |
+
+---
+
+## 2. Reusable source *classes* (the multiplier)
+
+The highest-leverage insight the roadmap makes explicit: several sources aren't one-offs, they're
+**instances of a keyless data standard**. Once the pattern exists, a new instance is a ~30-line reskin
+(swap host/ids), not a fresh recon. Prefer expanding a proven class before inventing a new mechanic.
+
+| class | query shape | built instance | more instances available |
+|-------|-------------|----------------|--------------------------|
+| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` | **outages** (Powercor) | NZ/AU utility outages, council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search` |
+| **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (4 systems) | any dock-mobility operator worldwide (systems.csv registry) |
+| **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` | gwrivers, mdcrivers, horizonsrivers | every open NZ regional-council hydrology server (gate each host) |
+| **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped | any ODS portal (cities, agencies) — `limit`≤100 |
+| **CKAN datastore** | `/api/3/action/datastore_search?resource_id=` | — | data.govt.nz, data.gov.au, data.qld live datastore resources |
+| **Socrata** | `/resource/<id>.json` | — | US city/state open-data portals |
+
+---
+
+## 3. The hitlist (prioritised, gate-vetted)
+
+**Scoring:** *Hoard* = ephemerality × un-rebuildability (H/M/L, the core filter). *Gate* = ✅ verified
+clean · 🟡 plausible, needs a recon pass · ⛔ known-fenced (skip/park). *Fills* = the gap it closes.
+Pick the **top ✅ row that fills the biggest gap**; drop to 🟡 only with a recon budget.
+
+### Tier 1 — build-ready (gate ✅, fills a gap)
+
+| # | target | class / mechanic | gate (verified 2026-07-07) | hoard | fills |
+|---|--------|------------------|----------------------------|-------|-------|
+| 1 | ~~**outages — Powercor**~~ | ArcGIS FS / scarcity+status+drift | ✅ services7.arcgis.com robots 403=missing; 21 live outages | **H** | ✅ **DONE this run** — opened utilities genre + the ArcGIS class |
+| 2 | **more ArcGIS outage/utility feeds** (NZ lines cos, water utilities, council hazard layers) | ArcGIS FS | 🟡→✅ per-org (public ArcGIS Online orgs; each needs its org id, `arcgis.com` search) | **H** | utilities depth + NZ/US geography; **exploits the class just built** |
+| 3 | **USGS Water Services** (US streamflow/gauge height) | Hilltop-analog / telemetry | ✅ waterservices.usgs.gov robots 404; `/nwis/iv/?format=json` 200 | L–M (USGS archives → rebuildable) | US geography + rivers-mechanic to the US; thin build |
+| 4 | **NOAA Tides & Currents** (live water level / tide) | telemetry / forecast-drift | ✅ api.tidesandcurrents.noaa.gov robots 403=missing; datagetter 200 JSON | L–M (archived) | opens **marine** domain; thin build |
+| 5 | **NASA EONET** (global natural-event tracker) | status ordinal / lifecycle | ✅ eonet.gsfc.nasa.gov robots 200 (read it); events 503 transient — retry | M | global all-hazards; complements geohazard set |
+
+### Tier 2 — high value, gate 🟡 (needs a recon pass first)
+
+| # | target | mechanic | gate posture | hoard | fills |
+|---|--------|----------|--------------|-------|-------|
+| 6 | **health / ED wait times** (ACT / SA / TAS / NSW live dashboards) | **queue / wait-time (new mechanic)** | 🟡 QLD ⛔ WAF-403, WA unreachable — recon a state with a keyless page-called feed | **H** | **new domain (health)** + new mechanic |
+| 7 | **streaming content rotation** (JustWatch / "leaving soon") | listing lifecycle / rotation | 🟡 GraphQL, check robots + page-called endpoint | **H** | **new domain**; epic-class un-rebuildable rotation |
+| 8 | **MetService NZ marine/surf** *(parked)* | forecast-drift | 🟡 robots open, `publicData` paths moved — bundle recon | M–H | NZ marine (the oceanforecast geo-fence re-roll) |
+| 9 | **GeoNet Tilde coastal sea level** *(parked)* | telemetry | 🟡 `/v4/domains` works, `/v4/data/…` path format unresolved | M | NZ tsunami/coastal; sibling of geonet |
+| 10 | **real-estate listing lifecycle** (homes.co.nz / oneroof / realestate.com.au) | listing lifecycle | 🟡→⛔ NZ majors fenced (Trade Me, Designer Wardrobe) — find a keyless market | **H** | **new domain**; strongest listing-lifecycle hoard if a gate opens |
+
+### Tier 3 — new-mechanic / speculative (park until a steer wants them)
+
+- **auction close dynamics** — a keyless auction feed (govt/council surplus, some art/collectible
+  houses); hoard the bid trajectory + closing snipe. New mechanic, un-rebuildable once closed.
+- **passport / visa / immigration processing times** — the published "current processing time"
+  drifts weekly; queue mechanic, forecast-drift cousin. Often a plain page-parse.
+- **venue busyness / occupancy %** — gym/library live occupancy counters. New mechanic.
+- **Global Dairy Trade** (NZ dairy auction) — NZ-relevant, but results are periodic + archived → **L**
+  hoard (frankfurter class). Build only as a capability/So-NZ flex, tagged honestly.
+- **CKAN / Socrata live datastore** — pick a *live* (not quarterly) resource to avoid the archived trap.
+
+### ⛔ Do-not-retry (gate-fenced or rebuildable — recorded so a drop doesn't burn a run)
+
+api.weather.gov (NWS, `Disallow: /`) · CoinGecko / crypto (`Disallow: /api`) · BoardGameGeek
+(`/xmlapi` + market JSON fenced) · CheapShark · PB Tech (`/search*` fenced) · Open-Meteo *api* host
+(`Disallow: /`) · DOC bookings (TLS-fingerprint WAF) · Auckland Airport (Cloudflare JS challenge) ·
+Wellington Airport (`/flights/*` fenced) · **OpenAQ** (v3 now requires an API key — 401) · **QLD
+Health** (Akamai WAF 403) · **Powerco self-hosted `gis.powerco.co.nz`** (403 — use the ArcGIS Online
+copy, #1) · equities / crypto spot (archived) · Wikipedia most-read / GitHub trending (rebuildable
+from dumps / GH Archive).
+
+---
+
+## 4. How `/daily-tool-drop` uses this file
+
+1. Read §3. Take the **top Tier-1 ✅ row that fills the biggest open gap** (Axis A/B/C in §1). If a
+   steer names a domain, jump to the matching row/tier.
+2. Prefer **expanding a proven class** (§2) over a fresh mechanic when value is comparable — it's a
+   ~30-line build and grows a genre's depth.
+3. Re-verify the gate live (robots for the exact data host) before building — postures drift; §3's
+   ✅/🟡 is a *starting* read, not a guarantee.
+4. On completion: move the row to `backlog.md` (Ported), update §1 counts + the Axis tables, and add
+   any newly-discovered target (or a fresh ⛔ ruling) back into §3 so the roadmap compounds.

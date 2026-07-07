@@ -154,6 +154,11 @@ Grouped by genre (same sections as the `--help` listing and the backlog).
 | chcparking | **not money** — `price_cents` = **free spaces × 100** (centi-space), so `drops` = a Christchurch parking building *filling up*; `qty` = capacity (`free`+`occupied`, when sane); deal "fullrisk" = a **reliable** building ≤ 20 free spaces. The feed repeats some buildings (collapsed by `park_id`, first kept) and a failing sensor can report nonsense (negative `occupied`, absurd `free`) → logged faithfully but `reliable=False` so it never registers as a deal. money() renders centi-spaces as $ in the 2 hardcoded spots | `free`, `occupied`, `capacity`, `status`, `reliable` | `park_id` |
 | sgcarpark | **not money** — `price_cents` = **free car (`C`) spaces × 100** (centi-lot), so `drops` = a car park *filling up*; `qty` = total car lots (capacity); deal "fullrisk" = ≤ 10 free car spaces (nearly full). A park gone from the feed pauses its series. money() renders centi-lots as $ in the 2 hardcoded spots | `available`, `total`, `by_type` (lot_type -> `{avail,total}`), `updated` | `carpark_number` |
 
+### utilities & outages
+| source | `price_cents` denomination | `flags` keys | `extra` keys |
+|--------|----------------------------|--------------|--------------|
+| outages | **not money** — `price_cents` = **customers affected × 100** (centi-customer), so `drops` = an outage *shrinking* (customers restored in stages); `qty` = crew-status ordinal (Outage Reported 1 → assigned/en-route 2 → attending 3 → Partially Restored 4); deal "major" = **unplanned** & ≥ 100 customers. Join key = composite `network:ORDER_ID`; an ORDER_ID gone from the feed = restored (fetch returns nothing, the series ends). money() renders centi-customers as $ in the watchlist + poll DROP line only (geonet/nzroads precedent) | `customers`, `status`, `cause`, `planned`, `etr`, `start`, `town`, `lga`, `network`, `updated` | `network`, `order_id`, `town`, `area`, `postcode`, `lga`, `street`, `lat`, `lon`, `url` |
+
 All money is integer **cents**. `price_cents = 0` means free; `NULL`/empty means the source returned
 no price for that observation. Currencies differ by source and `--cc`; the denomination is not stored
 per-row, so record which `--cc` a source is polled with if you mix them downstream.
