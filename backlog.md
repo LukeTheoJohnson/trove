@@ -84,6 +84,9 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | beachwatch | `sources/beachwatch.py`| site id (uuid)     | **ephemeral** (NSW beach daily pollution forecast + water-quality rating, changes with rainfall, not archived per-site) | **high** (AU beach water quality) |
 | safeswim   | `sources/safeswim.py`  | beach slug         | **ephemeral** (NZ beach water-quality traffic-light flipping GREEN/RED with stormwater; no per-beach live archive) | **high** (NZ twin of beachwatch) |
 | eafloods   | `sources/eafloods.py`  | flood-area id      | **ephemeral** (England flood warnings *in force*: the Alert->Warning->Severe escalate/ease/resolve lifecycle; the EA serves only the current set, no queryable per-area warning history) | **high** (event-driven, often empty in dry spells — avalanche pattern; OGL sanctioned) |
+| usgs       | `sources/usgs.py`      | USGS site number   | ephemeral *state* but **archived** (USGS keeps the full record; rebuildable, the octopus/frankfurter class) | low-med (fills US geography; US twin of gwrivers; live flood flex; 2026-07-07 batch) |
+| wildfire   | `sources/wildfire.py`  | IrwinID            | **ephemeral** (a US wildfire's acreage-growth + containment-% lifecycle, then it's out and drops off the *current* WFIGS layer; no queryable per-incident growth history) | **high** (reused the ArcGIS FS class for a new hazard; US geography; 2026-07-07 batch) |
+| airquality | `sources/airquality.py`| sensor id          | ephemeral PM reading but **archived** (Sensor.Community keeps its own history; noisy citizen sensors) | low-med (opened the air-quality domain; global; 2026-07-07 batch) |
 
 ### space
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -123,6 +126,12 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | outages    | `sources/outages.py`   | network:ORDER_ID | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; Powercor VIC AU, roadmap-driven trial pick 2026-07-07) |
+
+### marine & coastal
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| noaatides  | `sources/noaatides.py` | station id | ephemeral tide *state* but **archived** (NOAA keeps the record) | low-med (opened the marine genre; US coastal water level + surge; 2026-07-07 batch) |
+| ndbc       | `sources/ndbc.py`      | buoy id    | ephemeral sea *state* but **archived** (NDBC keeps the files) | low-med (marine genre; offshore wave/wind/temp; 2026-07-07 batch) |
 
 The TCG trio is a fun capability flex but mostly **low hoard value** — their price history is already
 public. The real moat in the current set is **discogs' marketplace state**. New sources should aim
@@ -179,6 +188,16 @@ high on this column.
 
 ## Skipped
 
+- **NASA EONET (global natural events)** `[parked] 2026-07-07` — gate is fine (eonet.gsfc.nasa.gov
+  robots 200/open, keyless official NASA), but the `/api/v3/events` JSON endpoint **returns 503 on
+  nearly every request from here** (aggressive rate-limit / flaky) — a source that fails most calls
+  isn't a viable interactive build (the nswair latency-gate lesson: gate on reachability, not just
+  permission). Park; revisit if the endpoint stabilises (one memoized GET/run should be within limits).
+- **Health / ED wait times (AU states)** `[parked] 2026-07-07` — highest-value open *new domain*
+  (health + a queue/wait-time mechanic trove lacks), but the gate hunt stalled: QLD Health is Akamai
+  WAF-403, WA EDWA host is unreachable (000), and the ACT/SA ED-dashboard page URLs 404 (moved). Needs
+  a dedicated recon pass to find a state serving a keyless page-called wait-time feed (TAS/ACT/SA/NSW).
+  Stays 🟡 on ROADMAP #6.
 - **NWS / weather.gov alerts (US)** `[skipped] 2026-07-06` — `api.weather.gov/robots.txt` is
   `User-agent: * / Disallow: /` — the **entire** official API is robots-fenced. Hard skip (CheapShark
   class), even though it's keyless + documented and the active-alerts feed would have been a nice

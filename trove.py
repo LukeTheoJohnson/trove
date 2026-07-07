@@ -30,13 +30,14 @@ SOURCE_GROUPS = {
     "currency & macro":                 ("frankfurter",),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "attention & rank":                 ("hackernews", "appcharts", "melbped"),
-    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "sacfs", "safeswim", "eafloods"),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "sacfs", "safeswim", "eafloods", "usgs", "wildfire", "airquality"),
     "space":                            ("spaceweather", "sentry", "spacelaunch"),
     "aviation":                         ("chcflights", "zqnflights", "opensky"),
     "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport"),
     "shared mobility":                  ("bikeshare", "sgtaxi"),
     "parking":                          ("chcparking", "sgcarpark"),
     "utilities & outages":              ("outages",),
+    "marine & coastal":                 ("noaatides", "ndbc"),
 }
 SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)
 

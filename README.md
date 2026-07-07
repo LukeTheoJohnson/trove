@@ -30,7 +30,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 
 ## Sources
 
-55 sources in twelve genres (the same grouping `python trove.py` prints):
+60 sources in thirteen genres (the same grouping `python trove.py` prints):
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -95,6 +95,9 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | beachwatch | site id (uuid)   | NSW (AU) beach water-quality star rating + daily pollution forecast; deal = pollution Possible/Likely (swim advisory) | keyless NSW Beachwatch GeoJSON |
 | safeswim | beach slug        | NZ beach water-quality traffic-light (GREEN/RED/RED+/BLACK), flips with rainfall; deal = a water-quality alert | keyless page-called Safeswim API |
 | eafloods | flood-area id      | England live flood warnings/alerts: severity lifecycle (Alert->Warning->Severe->stood down), then the area drops off the feed; deal = a live Flood Warning+ (event-driven, often empty in dry spells) | keyless EA flood-monitoring API (OGL) |
+| usgs    | USGS site number    | US river streamflow + gauge height at 5-15min telemetry (`--cc` = a US state); flood-onset rise (1.5x in 24h) | keyless USGS Water Services IV |
+| wildfire | IRWIN id           | US wildland fire incident lifecycle: acreage growth + containment % climb, then it's out and drops off the current layer; deal = active fire >=1000 acres and <50% contained | keyless NIFC/WFIGS ArcGIS Feature Service |
+| airquality | sensor id        | live citizen PM2.5/PM10 per air-quality sensor (`--cc` = a curated city); deal = PM2.5 >=25 ug/m3 (unhealthy) | keyless Sensor.Community API |
 
 ### space
 | source  | join key            | timeline value                         | API                          |
@@ -134,6 +137,12 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | outages | network:ORDER_ID    | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers | keyless ArcGIS Feature Service (Powercor, VIC AU) |
+
+### marine & coastal
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| noaatides | station id        | US coastal water level (ft above MLLW) rising/falling with the tide + storm surge; deal = rising and near the 24h max (high tide/surge) | keyless NOAA CO-OPS datagetter |
+| ndbc    | buoy station id     | offshore buoy sea state: significant wave height + period + wind + water temp; deal = wave height >=3 m (big swell) | keyless NOAA NDBC latest_obs |
 
 Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
 source-specific search flags (e.g. `itunes search --entity album`).
