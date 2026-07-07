@@ -4,6 +4,7 @@ data/
 
 # tooling state
 .omc/
+.claude/
 
 # personal notes - not for the public repo
 _personal/

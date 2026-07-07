@@ -28,8 +28,17 @@ CADENCE_MIN = {
     "em6": 30,        # half-hourly wholesale electricity spot
     "gwrivers": 60,   # river gauges update ~15-60 min
     "metno": 180,     # weather forecast drifts over hours
+    "nzroads": 30,    # national highway disruption board; full-board sweep (see SWEEP)
 }
 GAP_S = 20            # spacing between sources that fire in the same wake
+
+# Sources whose hoard is the whole feed rather than a hand-picked watchlist run a
+# full-board `search ""` instead of `poll` - still one GET (the client memoizes the
+# national feed), but new events auto-enter the hoard and a resolved event's absence
+# bounds its lifetime. A watchlist would go stale as event ids retire.
+SWEEP = {
+    "nzroads": ["search", "", "--limit", "5"],   # log all ~110 events; show top-severity 5 in the log
+}
 
 
 def _last_obs_age_min(src: str) -> float:
@@ -59,7 +68,7 @@ def main() -> None:
             if i:
                 time.sleep(GAP_S)
             stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
-            r = subprocess.run([sys.executable, "trove.py", src, "poll"],
+            r = subprocess.run([sys.executable, "trove.py", src, *SWEEP.get(src, ["poll"])],
                                cwd=str(ROOT), capture_output=True, text=True)
             f.write(f"[{stamp}] {src}\n{(r.stdout + r.stderr).strip()}\n")
 
