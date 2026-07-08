@@ -1,137 +1,147 @@
 """outages - live electricity-network outages via keyless ArcGIS Feature Services.
 
-Electricity distributors publish their live outage map from an **ArcGIS Feature Service** - the
-documented, keyless ArcGIS REST query standard (the WFS/GBFS class: a data standard built for client
-reuse = sanctioned -> trove). Powercor (the Victorian, AU distributor) serves its live outages on
-ArcGIS Online (`services7.arcgis.com`); the host serves no robots.txt (a 403 "Invalid URL" on
-`/robots.txt` = a missing object = no rules = unfenced, the GBFS/S3 class), and the feature service is
-exactly what the public outage map queries. `outSR=4326` reprojects the point geometry to clean
-WGS84 lat/lon on the fly.
+Distributors publish their live outage maps from **ArcGIS Feature Services** - the documented,
+keyless ArcGIS REST query standard (a data standard built for client reuse = sanctioned -> trove).
+This is the multi-network driver for that class: one shared model, one network = one NETWORKS row
+plus a small field adapter (the shared query mechanics live in trove/arcgis.py). `--cc` picks the
+network. Gate records:
+
+- **powercor** (Powercor, VIC AU): `services7.arcgis.com` serves no robots.txt (403 "Invalid URL" =
+  missing object = no rules = unfenced, the GBFS/S3 class); the feature service is exactly what the
+  public outage map queries. Point geometry.
+- **mbhydro** (Manitoba Hydro, CA, ~600k customers): layer owned by the utility's own GIS staff on
+  `services2.arcgis.com` (no robots.txt), marked public; what the public outage map queries. Polygon
+  geometry in NAD83/UTM14N reprojected via `outSR=4326`; first ring vertex = the coord. Epoch-ms
+  dates rendered as UTC `YYYY-MM-DD HH:MMZ`; a `11111111` sentinel/test feature is skipped.
 
 The timeline value is the **lifecycle of an outage**: it appears when reported, its crew status
-progresses (Outage Reported -> Crews Attending -> Partially Restored -> restored), its estimated
-restoration time (ETR) drifts, the customers-affected count falls as power comes back in stages, and
-then it **drops off the feed** once restored. Nobody archives that per-outage progression - the
-snapshot is the only record = high hoard value (nzroads/reverb retirement + metno ETR-drift).
+progresses, its estimated restoration time (ETR) drifts, the customers-affected count falls as power
+comes back in stages, and then it **drops off the feed** once restored. Nobody archives that
+per-outage progression - the snapshot is the only record = high hoard value.
 
-There is no price on an outage, so the tracked scalar is **customers affected** * 100 in `price_cents`
-(centi-customer), so the core's `drops` = an outage *shrinking* - customers restored in stages, a
-recovery signal. `qty` = the crew-status ordinal (Reported 1 -> assigned/en-route 2 -> attending 3 ->
-partially restored 4), so the response progression is a tracked integer too. money() cosmetically
-renders centi-customers as dollars in the two core-hardcoded spots (geonet/nzroads precedent); the
-rich displays show real counts. The "deal" (deal_label "major") = an **unplanned outage affecting
->= 100 customers** - the newsworthy, widespread events, not a single-property fault or scheduled work.
+There is no price on an outage, so the tracked scalar is **customers affected** * 100 in
+`price_cents` (centi-customer), so the core's `drops` = an outage *shrinking* - customers restored
+in stages. `qty` = the crew-status ordinal (reported 1 -> assigned 2 -> attending 3 -> partially
+restored 4 -> restored 5). money() cosmetically renders centi-customers as dollars in the two
+core-hardcoded spots (geonet/nzroads precedent); the rich displays show real counts. The "deal"
+(deal_label "major") = an **unplanned outage affecting >= MAJOR customers**.
 
-Model: one Item per outage (join key = composite `network:ORDER_ID`, split on the first ':' so a
-multi-network watchlist stays coherent - the appcharts/bikeshare pattern; the prefix lets fetch/poll
-rebuild the right feed). A network's whole live-outage set comes in one query (memoized per network),
-so a full search/fetch/poll pass is a single polite request. There is no by-id endpoint, so fetch
-scans the memoized feed (petrolspy/nzroads pattern); an ORDER_ID gone from the feed = restored = its
-series ends. The point layer id is resolved from the FeatureServer metadata at runtime (GBFS
-discovery pattern), so a new network only needs its FeatureServer URL added to NETWORKS. `--cc` picks
-the network (default powercor).
+Model: one Item per outage; join key = composite `network:<outage id>` so a multi-network watchlist
+stays coherent (the appcharts/bikeshare pattern). A network's whole live-outage set comes in one
+memoized query, so a full search/fetch/poll pass is one polite request; there is no by-id endpoint,
+so fetch scans the memoized feed (petrolspy/nzroads pattern) and an id gone from the feed =
+restored = its series ends. **Gate a new network on liveness** before adding its row - a public
+layer can be a dead demo (Westpower 2022+TEST, PNM frozen; see ROADMAP).
 """
 from __future__ import annotations
 
+from trove.arcgis import FeatureBoard, coords, epoch_ms, to_int
 from trove.db import Item, Obs
-from trove.session import retry_session, UA
 from trove.tracker import Source, safe
 
-# network code -> (label, FeatureServer URL, public outage-map URL).
+
+def _powercor(a):
+    """Powercor field adapter: raw attributes -> the common outage dict."""
+    oid = a.get("ORDER_ID")
+    if not oid:
+        return None
+    town = safe(a.get("TOWN") or "")
+    area = safe(a.get("AREA") or "")
+    street = safe(a.get("PRIVATISED") or "")
+    lga = safe(a.get("LGA_NAME") or "")
+    cause = (a.get("CAUSE") or "").strip()
+    return {"oid": str(oid),
+            "customers": to_int(a.get("CUSTOMERS")),
+            "status": (a.get("CREW_STATUS") or "").strip(),
+            "cause": cause,
+            "planned": "planned" in cause.lower(),
+            "etr": a.get("ETR") or "",
+            "start": a.get("START_TIME") or "",
+            "updated": a.get("createDateTime") or "",
+            "where": " - ".join(p for p in (town or area, street) if p),
+            "extra": {"town": town, "area": area, "postcode": a.get("POSTCODE") or "",
+                      "lga": lga, "street": street},
+            "flags": {"town": town, "lga": lga}}
+
+
+def _mbhydro(a):
+    """Manitoba Hydro field adapter: raw attributes -> the common outage dict."""
+    oid = a.get("OUTAGE_ID")
+    if not oid or str(oid) in {"11111111"}:    # MB Hydro's test/placeholder marker
+        return None
+    cause = (a.get("CAUSE") or "").strip()
+    subcause = (a.get("SUBCAUSE") or "").strip()
+    otype = (a.get("OUTAGE_TYPE") or "").strip()
+    return {"oid": str(oid),
+            "customers": to_int(a.get("NUM_CUST_NOPOWER")),
+            "status": (a.get("CREW_STATUS") or "").strip(),
+            "cause": cause,
+            "planned": any("planned" in s.lower() or "scheduled" in s.lower()
+                           for s in (otype, cause, subcause)),
+            "etr": epoch_ms(a.get("ETR")),
+            "start": epoch_ms(a.get("TIME_OF_OUTAGE")),
+            "updated": epoch_ms(a.get("DATA_LAST_UPDATE")),
+            "where": "",
+            "extra": {},
+            "flags": {"custtxt": safe(a.get("NUM_CUST_NOPOWERTXT") or ""), "subcause": subcause,
+                      "type": otype, "etr_verified": (a.get("FIELD_VERIFIED_ETR") or "").strip()}}
+
+
+# network code -> (label, FeatureServer URL, public outage-map URL, geometry, field adapter).
 NETWORKS = {
     "powercor": ("Powercor",
                  "https://services7.arcgis.com/si70weKpzPSa0BGV/arcgis/rest/services/Powercor_Outages/FeatureServer",
-                 "https://www.powercor.com.au/outages-and-faults/current-outages/"),
+                 "https://www.powercor.com.au/outages-and-faults/current-outages/",
+                 "point", _powercor),
+    "mbhydro": ("Manitoba Hydro",
+                "https://services2.arcgis.com/QoeQkfdOG126FqSi/arcgis/rest/services/Manitoba_Hydro_Current_Power_Outages/FeatureServer",
+                "https://account.hydro.mb.ca/portal/#/outages",
+                "polygon", _mbhydro),
 }
 
-# crew-status -> progression ordinal (Reported -> ... -> Partially Restored); unknown = 2 (mid).
+# crew-status -> progression ordinal (all networks share the 1-5 scheme); unknown = 2 (mid).
 CREW = {
-    "outage reported": 1, "reported": 1,
-    "crews assigned": 2, "en route": 2, "enroute": 2, "assigned": 2,
-    "crews attending": 3, "on site": 3, "assessing": 3, "attending": 3,
+    "outage reported": 1, "reported": 1, "initial assessment": 1,
+    "crews assigned": 2, "crew assigned": 2, "assigned": 2, "en route": 2, "enroute": 2,
+    "site assessed": 2,
+    "crews attending": 3, "crew on site": 3, "on site": 3, "assessing": 3, "attending": 3,
+    "repair in progress": 3,
     "partially restored": 4, "restored": 5,
 }
 MAJOR = 100    # unplanned outage affecting >= this many customers = a "major" event
-
-
-def _int(v):
-    try:
-        return int(str(v).strip())
-    except (TypeError, ValueError):
-        return None
 
 
 def _net_of(item_id):
     return str(item_id).split(":", 1)[0]
 
 
+def _feed(cl, net):
+    label, fs, url, geometry, adapt = NETWORKS[net]
+    return cl.feed(fs, geometry)
+
+
 def _build(net, feat):
-    """One ArcGIS point feature -> (Item, Obs). None without an ORDER_ID."""
-    a = (feat or {}).get("attributes") or {}
-    oid = a.get("ORDER_ID")
-    if not oid:
+    """One ArcGIS feature -> (Item, Obs) via the network's adapter. None for non-outage rows."""
+    label, fs, url, geometry, adapt = NETWORKS[net]
+    d = adapt((feat or {}).get("attributes") or {})
+    if d is None:
         return None
-    label = NETWORKS[net][0]
-    cust = _int(a.get("CUSTOMERS"))
-    status = (a.get("CREW_STATUS") or "").strip()
-    cause = (a.get("CAUSE") or "").strip()
-    planned = "planned" in cause.lower()
-    town = safe(a.get("TOWN") or "")
-    area = safe(a.get("AREA") or "")
-    street = safe(a.get("PRIVATISED") or "")
-    lga = safe(a.get("LGA_NAME") or "")
-    g = (feat or {}).get("geometry") or {}
-    lon, lat = g.get("x"), g.get("y")
-    key = f"{net}:{oid}"
-    where = " - ".join(p for p in (town or area, street) if p) or f"outage {oid}"
-    item = Item(key,
-                name=safe(where),
+    lat, lon = coords((feat or {}).get("geometry"))
+    cust = d.get("customers")
+    status = d.get("status") or ""
+    item = Item(f"{net}:{d['oid']}",
+                name=safe(d.get("where") or f"Outage {d['oid']}"),
                 subtitle=safe(f"{cust if cust is not None else '?'} customers - {status or 'reported'}"),
                 category=label,
-                extra={"network": net, "order_id": str(oid), "town": town, "area": area,
-                       "postcode": a.get("POSTCODE") or "", "lga": lga, "street": street,
-                       "lat": lat, "lon": lon, "url": NETWORKS[net][2]})
+                extra={"network": net, "outage_id": d["oid"], **d.get("extra", {}),
+                       "lat": lat, "lon": lon, "url": url})
     obs = Obs(price_cents=(cust * 100 if cust is not None else None),
               qty=CREW.get(status.lower(), 2),
-              flags={"customers": cust, "status": status, "cause": cause, "planned": planned,
-                     "etr": a.get("ETR") or "", "start": a.get("START_TIME") or "",
-                     "town": town, "lga": lga, "network": net,
-                     "updated": a.get("createDateTime") or ""})
+              flags={"customers": cust, "status": status, "cause": d.get("cause") or "",
+                     "planned": bool(d.get("planned")), "etr": d.get("etr") or "",
+                     "start": d.get("start") or "", "updated": d.get("updated") or "",
+                     "network": net, **d.get("flags", {})})
     return item, obs
-
-
-class _Client:
-    """Memoizes each network's point-layer id and live feed (one query per network per run)."""
-
-    def __init__(self):
-        self.s = retry_session()
-        self._layer = {}    # net -> layer id
-        self._feed = {}     # net -> [features]
-
-    def _headers(self):
-        return {"User-Agent": UA, "Accept": "application/json"}
-
-    def _point_layer(self, net):
-        if net not in self._layer:
-            r = self.s.get(NETWORKS[net][1], params={"f": "json"}, headers=self._headers(), timeout=40)
-            r.raise_for_status()
-            layers = (r.json() or {}).get("layers") or []
-            pick = next((L["id"] for L in layers if L.get("geometryType") == "esriGeometryPoint"), None)
-            if pick is None:
-                pick = next((L["id"] for L in layers if "point" in (L.get("name") or "").lower()), None)
-            self._layer[net] = pick if pick is not None else (layers[0]["id"] if layers else 0)
-        return self._layer[net]
-
-    def feed(self, net):
-        if net not in self._feed:
-            lid = self._point_layer(net)
-            url = f"{NETWORKS[net][1]}/{lid}/query"
-            r = self.s.get(url, params={"where": "1=1", "outFields": "*", "outSR": "4326",
-                                        "returnGeometry": "true", "f": "json"},
-                           headers=self._headers(), timeout=40)
-            r.raise_for_status()
-            self._feed[net] = (r.json() or {}).get("features") or []
-        return self._feed[net]
 
 
 class OutagesSource(Source):
@@ -151,21 +161,23 @@ class OutagesSource(Source):
         return cc if cc in NETWORKS else self.cc_default
 
     def client(self, args):
-        return _Client()
+        return FeatureBoard(timeout=40)
 
     def doctor(self, cl):
-        net = self.cc_default
-        feats = cl.feed(net)
-        cust = sum((_int(f.get("attributes", {}).get("CUSTOMERS")) or 0) for f in feats)
-        return bool(feats), (f"({len(feats)} live outages, {cust} customers affected on "
-                             f"{NETWORKS[net][0]}; keyless ArcGIS FeatureServer)")
+        parts, alive = [], False
+        for net in NETWORKS:
+            rows = [b for b in (_build(net, f) for f in _feed(cl, net)) if b]
+            cust = sum((ob.flags.get("customers") or 0) for _, ob in rows)
+            alive = alive or bool(rows)
+            parts.append(f"{NETWORKS[net][0]}: {len(rows)} outages, {cust} customers")
+        return alive, "(" + "; ".join(parts) + "; keyless ArcGIS FeatureServer)"
 
     def search(self, cl, term, args):
         net = self._net(args)
         want = getattr(args, "planned", "all") or "all"
         t = (term or "").lower()
         rows = []
-        for f in cl.feed(net):
+        for f in _feed(cl, net):
             built = _build(net, f)
             if not built:
                 continue
@@ -176,7 +188,8 @@ class OutagesSource(Source):
             if want == "exclude" and planned:
                 continue
             e = item.extra
-            hay = f"{item.name} {e.get('lga', '')} {e.get('postcode', '')} {obs.flags.get('status', '')}".lower()
+            hay = (f"{item.name} {e.get('lga', '')} {e.get('postcode', '')} "
+                   f"{obs.flags.get('status', '')} {obs.flags.get('cause', '')}").lower()
             if not t or t in hay:
                 rows.append((item, obs))
         rows.sort(key=lambda r: -(r[1].flags.get("customers") or 0))
@@ -187,9 +200,10 @@ class OutagesSource(Source):
         if net not in NETWORKS:
             return None
         oid = str(item_id).split(":", 1)[-1]
-        for f in cl.feed(net):
-            if str((f.get("attributes") or {}).get("ORDER_ID") or "") == oid:
-                return _build(net, f)
+        for f in _feed(cl, net):
+            built = _build(net, f)
+            if built and built[0].extra.get("outage_id") == oid:
+                return built
         return None    # gone from the feed = restored; the series ends
 
     def is_deal(self, obs):
@@ -208,15 +222,21 @@ class OutagesSource(Source):
 
     def format_item(self, item, obs):
         e = item.extra
-        lines = [f"  network  : {item.category}  (order {e.get('order_id', '')})",
-                 f"  location : {e.get('town', '')}  {e.get('lga', '')}  {e.get('postcode', '')}",
-                 f"  street   : {e.get('street', '')}"]
+        lines = [f"  network  : {item.category}  (outage {e.get('outage_id') or e.get('order_id', '')})"]
+        loc = "  ".join(p for p in (e.get("town", ""), e.get("lga", ""), e.get("postcode", "")) if p)
+        if loc:
+            lines.append(f"  location : {loc}")
+        if e.get("street"):
+            lines.append(f"  street   : {e.get('street')}")
         if obs:
             f = obs.flags
-            lines.append(f"  customers: {f.get('customers')}  affected")
+            n = f.get("customers")
+            cust = f"  customers: {n if n is not None else '?'}  affected"
+            lines.append(cust + (f"  ({f['custtxt']})" if f.get("custtxt") else ""))
             lines.append(f"  status   : {f.get('status') or '?'}  {'planned' if f.get('planned') else 'UNPLANNED'}")
-            lines.append(f"  cause    : {f.get('cause') or '?'}")
-            lines.append(f"  started  : {f.get('start') or '?'}   ETR {f.get('etr') or '?'}")
+            lines.append(f"  cause    : {f.get('cause') or '?'}  {f.get('subcause') or ''}".rstrip())
+            etr = f"  started  : {f.get('start') or '?'}   ETR {f.get('etr') or '?'}"
+            lines.append(etr + (f"  (verified: {f['etr_verified']})" if f.get("etr_verified") else ""))
             lines.append(f"  updated  : {f.get('updated') or '?'}")
         lines.append(f"  coords   : {e.get('lat')}, {e.get('lon')}")
         lines.append(f"  url      : {e.get('url', '')}")

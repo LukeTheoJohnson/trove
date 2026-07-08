@@ -22,7 +22,7 @@ come from the GetSessions response itself (each CinemaModels entry has Id + Name
 """
 from __future__ import annotations
 
-from datetime import date as _date
+from datetime import date as _date, timedelta
 
 from trove.db import Item, Obs
 from trove.session import retry_session, UA
@@ -118,8 +118,13 @@ class EventCinemasSource(Source):
         return _Client()
 
     def doctor(self, cl):
-        rows = _rows(cl.sessions(self.cc_default, _today()), self.cc_default, _today())
-        return bool(rows), f"({len(rows)} sessions at cinema {self.cc_default} today; keyless GetSessions JSON)"
+        # Late evening the day's screenings are legitimately over; an empty "today" is not an
+        # outage, so fall through to tomorrow before declaring the endpoint EMPTY.
+        for label, day in (("today", _today()), ("tomorrow", (_date.today() + timedelta(days=1)).isoformat())):
+            rows = _rows(cl.sessions(self.cc_default, day), self.cc_default, day)
+            if rows:
+                return True, f"({len(rows)} sessions at cinema {self.cc_default} {label}; keyless GetSessions JSON)"
+        return False, f"(0 sessions at cinema {self.cc_default} today or tomorrow; keyless GetSessions JSON)"
 
     def search(self, cl, term, args):
         date = getattr(args, "date", None) or _today()

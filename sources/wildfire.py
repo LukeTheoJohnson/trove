@@ -23,24 +23,19 @@ prescribed burns (RX). `--cc` is unused (one US layer).
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
+from trove.arcgis import FeatureBoard, epoch_ms
 from trove.db import Item, Obs
-from trove.session import retry_session, UA
 from trove.tracker import Source, safe
 
 LAYER = ("https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/"
-         "WFIGS_Incident_Locations_Current/FeatureServer/0/query")
+         "WFIGS_Incident_Locations_Current/FeatureServer/0")
 OUT = ("IrwinID,OBJECTID,IncidentName,IncidentSize,PercentContained,FireCause,POOState,"
        "POOCounty,IncidentTypeCategory,IncidentTypeKind,FireDiscoveryDateTime")
 MAJOR_ACRES = 1000       # >= this and < 50% contained (type WF) = a "major" active fire
 
 
-def _epoch_ms(v):
-    try:
-        return datetime.fromtimestamp(int(v) / 1000, timezone.utc).strftime("%Y-%m-%d %H:%MZ")
-    except (TypeError, ValueError):
-        return ""
+def _feed(cl):
+    return cl.feed(LAYER, out_fields=OUT)
 
 
 def _build(feat):
@@ -74,23 +69,8 @@ def _build(feat):
               qty=(int(contained) if contained is not None else None),
               flags={"acres": acres, "contained_pct": contained, "cause": a.get("FireCause") or "",
                      "type": cat, "state": state, "county": county,
-                     "discovered": _epoch_ms(a.get("FireDiscoveryDateTime"))})
+                     "discovered": epoch_ms(a.get("FireDiscoveryDateTime"))})
     return item, obs
-
-
-class _Client:
-    def __init__(self):
-        self.s = retry_session()
-        self._feed = None
-
-    def feed(self):
-        if self._feed is None:
-            r = self.s.get(LAYER, params={"where": "1=1", "outFields": OUT, "outSR": "4326",
-                                          "returnGeometry": "true", "f": "json"},
-                           headers={"User-Agent": UA, "Accept": "application/json"}, timeout=60)
-            r.raise_for_status()
-            self._feed = (r.json() or {}).get("features") or []
-        return self._feed
 
 
 class WildfireSource(Source):
@@ -106,10 +86,10 @@ class WildfireSource(Source):
     search_header = f"{'ACRES':>9}  {'CONT%':>5}  INCIDENT"
 
     def client(self, args):
-        return _Client()
+        return FeatureBoard()
 
     def doctor(self, cl):
-        feats = cl.feed()
+        feats = _feed(cl)
         wf = sum(1 for f in feats if (f.get("attributes") or {}).get("IncidentTypeCategory") == "WF")
         return bool(feats), f"({len(feats)} current incidents, {wf} wildfires; keyless NIFC/WFIGS ArcGIS FS)"
 
@@ -117,7 +97,7 @@ class WildfireSource(Source):
         t = (term or "").strip().lower()
         want = getattr(args, "planned", "all") or "all"
         rows = []
-        for f in cl.feed():
+        for f in _feed(cl):
             built = _build(f)
             if not built:
                 continue
@@ -134,7 +114,7 @@ class WildfireSource(Source):
         return rows
 
     def fetch(self, cl, item_id):
-        for f in cl.feed():
+        for f in _feed(cl):
             a = f.get("attributes") or {}
             if str(a.get("IrwinID") or a.get("OBJECTID") or "") == str(item_id):
                 return _build(f)

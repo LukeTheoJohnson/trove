@@ -125,8 +125,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### utilities & outages
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
-| outages    | `sources/outages.py`   | network:ORDER_ID | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; Powercor VIC AU, roadmap-driven trial pick 2026-07-07) |
-| mbhydro    | `sources/mbhydro.py`   | OUTAGE_ID        | **ephemeral** (a live Manitoba Hydro outage's customers-affected + crew-status + ETR-drift/field-verified lifecycle, restored in stages then dropped off the feed; no per-outage archive) | **high** (reused the ArcGIS FS class for a second utility; **opened Canada** — first trove source in that country; ROADMAP #2 pick 2026-07-08) |
+| outages    | `sources/outages.py`   | network:outage id | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; two networks as NETWORKS rows: Powercor VIC AU 2026-07-07 + Manitoba Hydro CA 2026-07-08 — the mbhydro build **opened Canada** and was folded from its own clone file into a network row in the 2026-07-08 consolidation, its 13 obs re-keyed `mbhydro:<id>` into outages.db) |
 
 ### marine & coastal
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
