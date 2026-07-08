@@ -36,7 +36,7 @@ SOURCE_GROUPS = {
     "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport"),
     "shared mobility":                  ("bikeshare", "sgtaxi"),
     "parking":                          ("chcparking", "sgcarpark"),
-    "utilities & outages":              ("outages",),
+    "utilities & outages":              ("outages", "mbhydro"),
     "marine & coastal":                 ("noaatides", "ndbc"),
 }
 SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)

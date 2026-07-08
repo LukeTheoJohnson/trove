@@ -126,6 +126,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | outages    | `sources/outages.py`   | network:ORDER_ID | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; Powercor VIC AU, roadmap-driven trial pick 2026-07-07) |
+| mbhydro    | `sources/mbhydro.py`   | OUTAGE_ID        | **ephemeral** (a live Manitoba Hydro outage's customers-affected + crew-status + ETR-drift/field-verified lifecycle, restored in stages then dropped off the feed; no per-outage archive) | **high** (reused the ArcGIS FS class for a second utility; **opened Canada** — first trove source in that country; ROADMAP #2 pick 2026-07-08) |
 
 ### marine & coastal
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -248,6 +249,27 @@ high on this column.
 
 ## Notes
 
+- **mbhydro gate (2026-07-08, Manitoba Hydro outages — ROADMAP #2 "more ArcGIS outage/utility feeds";
+  utilities 1->2, opened Canada):** the reusable ArcGIS FS class's own discovery mechanism did the
+  target-finding — `www.arcgis.com/sharing/rest/search?q=<term> type:Feature Service` over "power/
+  unplanned/electricity outage" returned public outage layers worldwide, ranked by views. Gate:
+  `services2.arcgis.com/robots.txt` 403 (missing-object = unfenced, the S3 class); the layer is owned
+  by `dcarpenter@hydro.mb.ca` (the utility's own GIS) + `access:public` = sanctioned -> trove.
+  **The real gate here was liveness, not permission** (the nswair reachability lesson): two clean-looking
+  public NZ/US layers were **dead** — **Westpower** (`WestpowerUnplannedOutageLayer`, NZ West Coast)
+  newest event 2022 + a literal `TEST` feature; **PNM** (New Mexico) frozen at "November 18" dates.
+  Manitoba Hydro's `DATA_LAST_UPDATE` was minutes old (13 live outages) — check the newest timestamp
+  before building an ArcGIS layer, a public item can be an abandoned demo. Findings: (1) single polygon
+  layer (id 0), geometry in **NAD83/UTM 14N (wkid 26914)** — request `outSR=4326` to get WGS84 lat/lon,
+  first ring vertex = the coord (nzroads pattern). (2) rich schema: `NUM_CUST_NOPOWER` (int) +
+  `NUM_CUST_NOPOWERTXT` (banded "Less than 5"), `CREW_STATUS` (Initial Assessment -> Site Assessed ->
+  restored) = the qty ordinal, `ETR` + `FIELD_VERIFIED_ETR` (No->Yes flip) = the drift, `CAUSE`/
+  `SUBCAUSE`. Join key = `OUTAGE_ID` (single network, no prefix). (3) dates are epoch-ms -> rendered UTC
+  `YYYY-MM-DD HH:MMZ`; an `11111111` sentinel/test point (far-north, no times) is skipped. Kept as a
+  **separate source** (not a Powercor `--cc`) because each utility's ArcGIS schema differs — the
+  gwrivers/mdcrivers/horizonsrivers precedent (one source per class instance). **Energex (SE QLD, AU)**
+  — `VwEnergexOutages`, 126 live events, also clean/live — is the obvious next ArcGIS-FS reskin, parked
+  on ROADMAP.
 - **ANZ width batch (2026-07-05, "10 new daily-tool-drops, NZ + AU relevant" — 10 sources in one pass,
   3 NZ / 7 AU):** all keyless, robots-gated first, no new genre (they fill fuel/electricity,
   attention & rank, and weather/geohazard). Gate records & lessons:

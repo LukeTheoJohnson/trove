@@ -137,6 +137,7 @@ things that vary per source are the **ID format** and whether `search` is free-t
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | outages | network:ORDER_ID    | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers | keyless ArcGIS Feature Service (Powercor, VIC AU) |
+| mbhydro | OUTAGE_ID           | live Manitoba Hydro outage lifecycle (customers affected + crew status + ETR drift/field-verified flip, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers | keyless ArcGIS Feature Service (Manitoba Hydro, CA) |
 
 ### marine & coastal
 | source  | join key            | timeline value                         | API                          |

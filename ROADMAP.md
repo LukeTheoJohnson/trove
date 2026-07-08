@@ -14,8 +14,8 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-07 (60 sources, 13 genres — a 5-drop batch opened marine & coastal + filled the
-air-quality domain + extended US geography via rivers/wildfire). Gate notes marked ✅/🟡/⛔ reflect live recon on
+_Last mapped: 2026-07-08 (61 sources, 13 genres — mbhydro added Manitoba Hydro outages, taking utilities
+1->2 and opening Canada, via the reusable ArcGIS FS class). Gate notes marked ✅/🟡/⛔ reflect live recon on
 that date — re-verify a host's robots before building; postures drift._
 
 ---
@@ -40,7 +40,7 @@ ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop tar
 | roads & transport | nzroads, tfl, mbta, swisstransport | medium |
 | shared mobility | bikeshare, sgtaxi | thin |
 | parking | chcparking, sgcarpark | thin |
-| **utilities & outages** | outages *(new 2026-07-07)* | **thin (1)** |
+| **utilities & outages** | outages, mbhydro *(mbhydro new 2026-07-08)* | **thin (2)** |
 | **marine & coastal** | noaatides, ndbc *(new 2026-07-07)* | **new (2) — opened this batch** |
 
 **Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
@@ -81,7 +81,8 @@ dining / reservation availability.
 | EU | some | awattar (DE/AT), swisstransport (CH), frankfurter |
 | US | **thin vs its open-data richness** | mbta, opensky bbox, bikeshare (4 cities) — NWS is robots-fenced, but USGS/NOAA/Socrata/data.gov are wide open |
 | SG | narrow | taxi, carpark |
-| rest of world | **none** | Canada, Japan, wider Asia, LatAm, Africa untouched |
+| CA | **new (1)** | mbhydro (Manitoba Hydro outages) — opened 2026-07-08; huge open-data surface untouched |
+| rest of world | **none** | Japan, wider Asia, LatAm, Africa untouched |
 
 ---
 
@@ -93,7 +94,7 @@ The highest-leverage insight the roadmap makes explicit: several sources aren't 
 
 | class | query shape | built instance | more instances available |
 |-------|-------------|----------------|--------------------------|
-| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` | **outages** (Powercor), **wildfire** (NIFC/WFIGS) | NZ/AU utility outages, council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search`. Gotcha: layers aren't always id 0 (Powercor points = 1); read `FeatureServer?f=json` for the layer id |
+| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` | **outages** (Powercor), **mbhydro** (Manitoba Hydro), **wildfire** (NIFC/WFIGS) | AU/CA/US utility outages (Energex QLD next — `VwEnergexOutages`, 126 live), council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. Gotchas: layers aren't always id 0 (Powercor points = 1; MB Hydro polygon = 0) — read `FeatureServer?f=json`; projected geometry (MB Hydro wkid 26914) needs `outSR=4326`; **gate on liveness** — a public layer can be a dead demo (Westpower 2022+TEST, PNM frozen dates), check the newest `*_UPDATE`/event timestamp |
 | **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (4 systems) | any dock-mobility operator worldwide (systems.csv registry) |
 | **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` | gwrivers, mdcrivers, horizonsrivers | every open NZ regional-council hydrology server (gate each host) |
 | **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped | any ODS portal (cities, agencies) — `limit`≤100 |
@@ -113,7 +114,7 @@ Pick the **top ✅ row that fills the biggest gap**; drop to 🟡 only with a re
 | # | target | class / mechanic | gate (verified 2026-07-07) | hoard | fills |
 |---|--------|------------------|----------------------------|-------|-------|
 | 1 | ~~**outages — Powercor**~~ | ArcGIS FS / scarcity+status+drift | ✅ services7.arcgis.com robots 403=missing; 21 live outages | **H** | ✅ **DONE this run** — opened utilities genre + the ArcGIS class |
-| 2 | **more ArcGIS outage/utility feeds** (NZ lines cos, water utilities, council hazard layers) | ArcGIS FS | 🟡→✅ per-org (public ArcGIS Online orgs; each needs its org id, `arcgis.com` search) | **H** | utilities depth + NZ/US geography; **exploits the class just built** |
+| 2 | **more ArcGIS outage/utility feeds** — ✅ **mbhydro DONE 2026-07-08** (Manitoba Hydro, opened Canada); **Energex** (SE QLD, `VwEnergexOutages`, 126 live) is the next ✅ reskin; then water utilities / council hazard layers | ArcGIS FS | ✅ per-org (Energex verified live 2026-07-08; discover more via `arcgis.com` search) | **H** | utilities depth + CA/US geography; **exploits the class** (each ~30-line reskin) |
 | 3 | ~~**USGS Water Services**~~ (`sources/usgs.py`) | telemetry / flood-rise | ✅ built 2026-07-07 | L–M | ✅ **DONE** — US rivers, fills US geography |
 | 4 | ~~**NOAA Tides & Currents**~~ (`sources/noaatides.py`) | telemetry / tide | ✅ built 2026-07-07 | L–M | ✅ **DONE** — opened marine & coastal (w/ ndbc) |
 | 4b | ~~**NDBC buoys**~~ (`sources/ndbc.py`) — added so marine isn't a lone-source genre | telemetry / sea-state | ✅ built 2026-07-07 | L–M | ✅ **DONE** — offshore wave/wind/temp |
@@ -149,7 +150,10 @@ api.weather.gov (NWS, `Disallow: /`) · CoinGecko / crypto (`Disallow: /api`) ·
 (`Disallow: /`) · DOC bookings (TLS-fingerprint WAF) · Auckland Airport (Cloudflare JS challenge) ·
 Wellington Airport (`/flights/*` fenced) · **OpenAQ** (v3 now requires an API key — 401) · **QLD
 Health** (Akamai WAF 403) · **Powerco self-hosted `gis.powerco.co.nz`** (403 — use the ArcGIS Online
-copy, #1) · equities / crypto spot (archived) · Wikipedia most-read / GitHub trending (rebuildable
+copy, #1) · **Westpower NZ ArcGIS outage layer** (`WestpowerUnplannedOutageLayer` — gate clean/public
+but **dead**: newest event 2022 + a `TEST` feature; abandoned demo) · **PNM (New Mexico) outages**
+(public + live-ish but **stale** — dates frozen ~Nov, only ~2 tiny outages; not actively maintained) ·
+equities / crypto spot (archived) · Wikipedia most-read / GitHub trending (rebuildable
 from dumps / GH Archive) · **NASA EONET** (JSON endpoint 503s on nearly every request — flaky/
 rate-limited, fails the reachability gate; open gate but unbuildable interactively 2026-07-07).
 
