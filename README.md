@@ -28,6 +28,29 @@ things that vary per source are the **ID format** and whether `search` is free-t
 `python trove.py <source> -h` lists its commands and any extra flags
 (`--cc`, `--limit`, `itunes search --entity album`, `eventcinemas --cc 502`). 
 
+Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
+source-specific search flags (e.g. `itunes search --entity album`).
+
+## Architecture
+Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled sources.
+
+```
+trove.py            entrypoint:  python trove.py <source> <command> [args]
+trove/
+  session.py        retry_session() - shared backoff HTTP session
+  db.py             TrackerDB + Item/Obs - the stateful spine (items, timestamped obs, watch)
+  tracker.py        Source contract + run_cli (the generic command set lives here, once)
+sources/
+  steam.py          ~90 lines: endpoints + normalise payload -> Item/Obs + deal semantics
+  discogs.py
+  itunes.py
+  scryfall.py
+```
+
+The core owns everything that is stateful and generic: caching, the timestamped observation log, the
+watchlist, drop detection, deal transitions. A source owns only what is unique to it: the endpoints,
+how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
+
 ## Sources
 
 60 sources in thirteen genres (the same grouping `python trove.py` prints):
@@ -143,29 +166,6 @@ things that vary per source are the **ID format** and whether `search` is free-t
 |---------|---------------------|----------------------------------------|------------------------------|
 | noaatides | station id        | US coastal water level (ft above MLLW) rising/falling with the tide + storm surge; deal = rising and near the 24h max (high tide/surge) | keyless NOAA CO-OPS datagetter |
 | ndbc    | buoy station id     | offshore buoy sea state: significant wave height + period + wind + water temp; deal = wave height >=3 m (big swell) | keyless NOAA NDBC latest_obs |
-
-Every source runs the same commands: `doctor search item watch poll deals drops export`, plus a few
-source-specific search flags (e.g. `itunes search --entity album`).
-
-## Architecture
-Pure stdlib plus `requests` (`pip install -r requirements.txt`). No API keys for the bundled sources.
-
-```
-trove.py            entrypoint:  python trove.py <source> <command> [args]
-trove/
-  session.py        retry_session() - shared backoff HTTP session
-  db.py             TrackerDB + Item/Obs - the stateful spine (items, timestamped obs, watch)
-  tracker.py        Source contract + run_cli (the generic command set lives here, once)
-sources/
-  steam.py          ~90 lines: endpoints + normalise payload -> Item/Obs + deal semantics
-  discogs.py
-  itunes.py
-  scryfall.py
-```
-
-The core owns everything that is stateful and generic: caching, the timestamped observation log, the
-watchlist, drop detection, deal transitions. A source owns only what is unique to it: the endpoints,
-how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Adding a source (~50 lines)
 
