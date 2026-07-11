@@ -13,6 +13,11 @@ network. Gate records:
   `services2.arcgis.com` (no robots.txt), marked public; what the public outage map queries. Polygon
   geometry in NAD83/UTM14N reprojected via `outSR=4326`; first ring vertex = the coord. Epoch-ms
   dates rendered as UTC `YYYY-MM-DD HH:MMZ`; a `11111111` sentinel/test feature is skipped.
+- **energex** (Energex, SE QLD AU, ~1.6m customers): `VwEnergexOutages` service owned by
+  `AGOL_ENERGEX_ADMIN` on `services.arcgis.com` (robots 403=missing=unfenced); two layers, point
+  (id 1) picked by geometry. `EVENT_ID` = join key, `TYPE` PLANNED/UNPLANNED is the explicit planned
+  flag, `STATUS` (Scheduled/Awaiting/In Progress/Cancelled) the crew ordinal, `EXTRACTED` epoch-ms =
+  the snapshot time. Point geometry already WGS84 (wkid 4326).
 
 The timeline value is the **lifecycle of an outage**: it appears when reported, its crew status
 progresses, its estimated restoration time (ETR) drifts, the customers-affected count falls as power
@@ -64,6 +69,27 @@ def _powercor(a):
             "flags": {"town": town, "lga": lga}}
 
 
+def _energex(a):
+    """Energex (SE QLD) field adapter: raw attributes -> the common outage dict."""
+    oid = a.get("EVENT_ID")
+    if not oid:
+        return None
+    suburb = safe(a.get("SUBURBS") or "")
+    street = safe(a.get("STREETS") or "")
+    otype = (a.get("TYPE") or "").strip()
+    return {"oid": str(oid),
+            "customers": to_int(a.get("CUSTOMERS_AFFECTED")),
+            "status": (a.get("STATUS") or "").strip(),
+            "cause": (a.get("REASON") or "").strip(),
+            "planned": otype.upper() == "PLANNED",
+            "etr": epoch_ms(a.get("EST_FIX_TIME")),
+            "start": epoch_ms(a.get("START")),
+            "updated": epoch_ms(a.get("EXTRACTED")),
+            "where": " - ".join(p for p in (suburb, street) if p),
+            "extra": {"town": suburb, "street": street},
+            "flags": {"type": otype, "finish": epoch_ms(a.get("FINISH"))}}
+
+
 def _mbhydro(a):
     """Manitoba Hydro field adapter: raw attributes -> the common outage dict."""
     oid = a.get("OUTAGE_ID")
@@ -97,16 +123,21 @@ NETWORKS = {
                 "https://services2.arcgis.com/QoeQkfdOG126FqSi/arcgis/rest/services/Manitoba_Hydro_Current_Power_Outages/FeatureServer",
                 "https://account.hydro.mb.ca/portal/#/outages",
                 "polygon", _mbhydro),
+    "energex": ("Energex",
+                "https://services.arcgis.com/bfVzktoY0OhzQCDj/arcgis/rest/services/VwEnergexOutages/FeatureServer",
+                "https://www.energex.com.au/outages/current-outages",
+                "point", _energex),
 }
 
 # crew-status -> progression ordinal (all networks share the 1-5 scheme); unknown = 2 (mid).
 CREW = {
     "outage reported": 1, "reported": 1, "initial assessment": 1,
+    "scheduled": 1, "awaiting": 1,
     "crews assigned": 2, "crew assigned": 2, "assigned": 2, "en route": 2, "enroute": 2,
     "site assessed": 2,
     "crews attending": 3, "crew on site": 3, "on site": 3, "assessing": 3, "attending": 3,
-    "repair in progress": 3,
-    "partially restored": 4, "restored": 5,
+    "repair in progress": 3, "in progress": 3,
+    "partially restored": 4, "restored": 5, "cancelled": 5,
 }
 MAJOR = 100    # unplanned outage affecting >= this many customers = a "major" event
 

@@ -125,7 +125,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### utilities & outages
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
-| outages    | `sources/outages.py`   | network:outage id | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; two networks as NETWORKS rows: Powercor VIC AU 2026-07-07 + Manitoba Hydro CA 2026-07-08 — the mbhydro build **opened Canada** and was folded from its own clone file into a network row in the 2026-07-08 consolidation, its 13 obs re-keyed `mbhydro:<id>` into outages.db) |
+| outages    | `sources/outages.py`   | network:outage id | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; three networks as NETWORKS rows: Powercor VIC AU 2026-07-07 + Manitoba Hydro CA 2026-07-08 + Energex SE QLD AU 2026-07-11 — the mbhydro build **opened Canada** and was folded from its own clone file into a network row in the 2026-07-08 consolidation, its 13 obs re-keyed `mbhydro:<id>` into outages.db; energex added as a pure NETWORKS row + field adapter, 126 live events, no new file) |
 
 ### marine & coastal
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -269,6 +269,21 @@ high on this column.
   gwrivers/mdcrivers/horizonsrivers precedent (one source per class instance). **Energex (SE QLD, AU)**
   — `VwEnergexOutages`, 126 live events, also clean/live — is the obvious next ArcGIS-FS reskin, parked
   on ROADMAP.
+- **energex gate (2026-07-11, Energex SE QLD outages — ROADMAP #2 "more ArcGIS outage/utility feeds",
+  utilities 2->3 networks, deepens AU):** the reskin the mbhydro note flagged. Gate: `services.arcgis.com/
+  robots.txt` 403 (missing = unfenced, the S3 class); service `VwEnergexOutages` owned by
+  `AGOL_ENERGEX_ADMIN` (the utility's own admin) = sanctioned -> trove. 126 live events, fresh
+  `EXTRACTED` timestamps (liveness confirmed, the Westpower/PNM lesson). **Added as a pure NETWORKS row
+  + ~20-line field adapter in the existing `sources/outages.py` — no new file** (the class-instance
+  discipline: count networks, not files; contrast the mbhydro build, which predated consolidation and
+  arrived as a clone). Findings: two layers (`OutageArea` polygon id 0 / `OutagePoint` id 1) — the
+  FeatureBoard picks the point layer by geometry; point geometry is **already WGS84 (wkid 4326)**, no
+  reprojection. Schema: `EVENT_ID` (join key, `energex:INCD-xxxxxx-g`), `TYPE` PLANNED/UNPLANNED is an
+  **explicit** planned flag (cleaner than powercor's cause-text sniff), `STATUS` (Scheduled/Awaiting/In
+  Progress/Cancelled) the crew ordinal, `CUSTOMERS_AFFECTED`, `REASON` (Planned Maintenance/Emergency
+  Repairs) the cause, `START`/`EST_FIX_TIME`/`FINISH`/`EXTRACTED` epoch-ms. Feed was 125 planned + 1
+  unplanned at build (quiet period) — deal/major wiring proven offline against synthetic unplanned
+  >=100 features.
 - **ANZ width batch (2026-07-05, "10 new daily-tool-drops, NZ + AU relevant" — 10 sources in one pass,
   3 NZ / 7 AU):** all keyless, robots-gated first, no new genre (they fill fuel/electricity,
   attention & rank, and weather/geohazard). Gate records & lessons:

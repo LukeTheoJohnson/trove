@@ -14,12 +14,13 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-08 (60 source files, 13 genres, coverage unchanged — the consolidation pass folded
-mbhydro into `outages` as a NETWORKS row (utilities = 1 driver, 2 networks, CA coverage kept), made the
-rivers trio thin instances of `trove/hilltop.py`, and hoisted the ArcGIS mechanics to `trove/arcgis.py`.
-A full 61-source live doctor sweep that day: 59 OK, 0 dead — pokemontcg slow/flaky, eventcinemas doctor
-fixed to probe tomorrow when today's board is over). Gate notes marked ✅/🟡/⛔ reflect live recon on
-that date — re-verify a host's robots before building; postures drift._
+_Last mapped: 2026-07-11 (60 source files, 13 genres — energex added as a 3rd `outages` NETWORKS row
+(utilities = 1 driver, 3 networks; VIC + SE QLD + CA), still no new file, exercising the ArcGIS class
+discipline. Prior 2026-07-08 consolidation folded mbhydro into `outages`, made the rivers trio thin
+instances of `trove/hilltop.py`, and hoisted the ArcGIS mechanics to `trove/arcgis.py`; that day's full
+61-source live doctor sweep: 59 OK, 0 dead — pokemontcg slow/flaky, eventcinemas doctor fixed to probe
+tomorrow when today's board is over). Gate notes marked ✅/🟡/⛔ reflect live recon on those dates —
+re-verify a host's robots before building; postures drift._
 
 ---
 
@@ -43,7 +44,7 @@ ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop tar
 | roads & transport | nzroads, tfl, mbta, swisstransport | medium |
 | shared mobility | bikeshare, sgtaxi | thin |
 | parking | chcparking, sgcarpark | thin |
-| **utilities & outages** | outages *(powercor VIC AU + mbhydro CA as NETWORKS rows)* | **thin (1 driver, 2 networks)** |
+| **utilities & outages** | outages *(powercor VIC AU + mbhydro CA + energex SE QLD AU as NETWORKS rows)* | **thin (1 driver, 3 networks)** |
 | **marine & coastal** | noaatides, ndbc *(new 2026-07-07)* | **new (2) — opened this batch** |
 
 **Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
@@ -79,7 +80,7 @@ dining / reservation availability.
 | region | strength | notes |
 |--------|----------|-------|
 | NZ | **very deep** | fuel, electricity, rivers×3, ski, avalanche, beaches, roads, flights×2, parking, quakes, volcano |
-| AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC)** |
+| AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC + SE QLD)** |
 | UK | good | octopus, carbonintensity, tfl, eafloods |
 | EU | some | awattar (DE/AT), swisstransport (CH), frankfurter |
 | US | **thin vs its open-data richness** | mbta, opensky bbox, bikeshare (4 cities) — NWS is robots-fenced, but USGS/NOAA/Socrata/data.gov are wide open |
@@ -102,7 +103,7 @@ a new mechanic.
 
 | class | query shape | built instance | more instances available |
 |-------|-------------|----------------|--------------------------|
-| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + mbhydro NETWORKS rows), **wildfire** (NIFC/WFIGS) | AU/CA/US utility outages (Energex QLD next — `VwEnergexOutages`, 126 live: a NETWORKS row + field adapter in `sources/outages.py`, not a new file), council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. Gotchas handled by FeatureBoard: layer isn't always id 0 (resolved by geometry type from `FeatureServer?f=json`); projected geometry (MB Hydro wkid 26914) reprojected via `outSR=4326`. **Gate on liveness** — a public layer can be a dead demo (Westpower 2022+TEST, PNM frozen dates), check the newest `*_UPDATE`/event timestamp |
+| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + mbhydro + energex NETWORKS rows), **wildfire** (NIFC/WFIGS) | AU/CA/US utility outages (Energex SE QLD ✅ **done 2026-07-11** — a NETWORKS row + field adapter, no new file; next: another distributor e.g. Ergon/SA Power, or water utilities), council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. Gotchas handled by FeatureBoard: layer isn't always id 0 (resolved by geometry type from `FeatureServer?f=json`); projected geometry (MB Hydro wkid 26914) reprojected via `outSR=4326`. **Gate on liveness** — a public layer can be a dead demo (Westpower 2022+TEST, PNM frozen dates), check the newest `*_UPDATE`/event timestamp |
 | **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (4 systems) | any dock-mobility operator worldwide (systems.csv registry) |
 | **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` via `trove/hilltop.py` | gwrivers, mdcrivers, horizonsrivers (each a ~20-line subclass) | every open NZ regional-council hydrology server (gate each host; a new council = name + host + label) |
 | **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped | any ODS portal (cities, agencies) — `limit`≤100 |
@@ -122,7 +123,7 @@ Pick the **top ✅ row that fills the biggest gap**; drop to 🟡 only with a re
 | # | target | class / mechanic | gate (verified 2026-07-07) | hoard | fills |
 |---|--------|------------------|----------------------------|-------|-------|
 | 1 | ~~**outages — Powercor**~~ | ArcGIS FS / scarcity+status+drift | ✅ services7.arcgis.com robots 403=missing; 21 live outages | **H** | ✅ **DONE this run** — opened utilities genre + the ArcGIS class |
-| 2 | **more ArcGIS outage/utility feeds** — ✅ **mbhydro DONE 2026-07-08** (Manitoba Hydro, opened Canada; now a NETWORKS row in `sources/outages.py`); **Energex** (SE QLD, `VwEnergexOutages`, 126 live) is the next ✅ instance — a NETWORKS row + ~30-line field adapter, **not a new file**; then water utilities / council hazard layers | ArcGIS FS | ✅ per-org (Energex verified live 2026-07-08; discover more via `arcgis.com` search) | **H** | utilities depth + AU/CA/US geography; **exploits the class** (each a config row) |
+| 2 | **more ArcGIS outage/utility feeds** — ✅ **mbhydro DONE 2026-07-08** (Manitoba Hydro, opened Canada); ✅ **energex DONE 2026-07-11** (Energex SE QLD, `VwEnergexOutages`, 126 live — a NETWORKS row + field adapter, no new file); next ✅ instance: another AU distributor (Ergon regional QLD, SA Power, Endeavour/Ausgrid NSW) or a water utility — discover via `arcgis.com` search, gate on liveness | ArcGIS FS | ✅ per-org (discover + liveness-check each) | **H** | utilities depth + AU/CA/US geography; **exploits the class** (each a config row) |
 | 3 | ~~**USGS Water Services**~~ (`sources/usgs.py`) | telemetry / flood-rise | ✅ built 2026-07-07 | L–M | ✅ **DONE** — US rivers, fills US geography |
 | 4 | ~~**NOAA Tides & Currents**~~ (`sources/noaatides.py`) | telemetry / tide | ✅ built 2026-07-07 | L–M | ✅ **DONE** — opened marine & coastal (w/ ndbc) |
 | 4b | ~~**NDBC buoys**~~ (`sources/ndbc.py`) — added so marine isn't a lone-source genre | telemetry / sea-state | ✅ built 2026-07-07 | L–M | ✅ **DONE** — offshore wave/wind/temp |

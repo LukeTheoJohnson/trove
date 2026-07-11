@@ -159,7 +159,7 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 ### utilities & outages
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
-| outages | network:outage id   | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers; `--cc` picks the network (powercor = VIC AU, mbhydro = Manitoba Hydro CA) | keyless ArcGIS Feature Services (one NETWORKS row per utility) |
+| outages | network:outage id   | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers; `--cc` picks the network (powercor = VIC AU, mbhydro = Manitoba Hydro CA, energex = SE QLD AU) | keyless ArcGIS Feature Services (one NETWORKS row per utility) |
 
 ### marine & coastal
 | source  | join key            | timeline value                         | API                          |
