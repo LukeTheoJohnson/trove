@@ -78,6 +78,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | avalanche  | `sources/avalanche.py` | region slug        | **ephemeral** (the NZ backcountry avalanche danger rating *as issued* daily per region + its revision; NZAA serves the current advisory only, no public per-region danger-history series) | **high** (un-rebuildable forecast-drift; NZ geohazard, seasonal) |
 | mdcrivers  | `sources/mdcrivers.py` | gauge site name    | **ephemeral** (Marlborough NZ river flow/level telemetry; no convenient unified per-gauge series) | med-high (NZ flood watch; gwrivers sibling, different region) |
 | horizonsrivers | `sources/horizonsrivers.py` | gauge site name | **ephemeral** (Manawatu-Whanganui NZ river flow/level telemetry) | med-high (NZ flood watch; flood-prone region) |
+| northlandrivers | `sources/northlandrivers.py` | gauge site name | **ephemeral** (Northland NZ river flow/level telemetry; subtropical, flood-prone far north) | med-high (NZ flood watch; gwrivers class, ~1100 sites) |
+| westcoastrivers | `sources/westcoastrivers.py` | gauge site name | **ephemeral** (West Coast NZ river flow/level telemetry; wettest region, flashy alpine rivers) | med-high (NZ flood watch; gwrivers class, ~120 sites) |
 | nswrfs     | `sources/nswrfs.py`    | incident id        | **ephemeral** (a NSW bush/grass fire's alert-level + size + status lifecycle, then it drops off the board once resolved; feed serves current state only) | **high** (un-rebuildable incident progression; AU geohazard) |
 | vicemergency | `sources/vicemergency.py` | event id       | **ephemeral** (a Victorian all-hazards warning's alert-level lifecycle across fire/flood/storm, then resolved) | **high** (un-rebuildable; AU all-hazards) |
 | sacfs      | `sources/sacfs.py`     | incident id        | **ephemeral** (an SA CFS incident's response level + status lifecycle, then closed) | med-high (AU emergency; all incident types) |
@@ -247,6 +249,35 @@ high on this column.
   `/search` disallow.)
 
 ## Notes
+
+- **Hilltop NZ councils batch + Alberta/health re-roll (2026-07-12, "recon+build Alberta ER waits, then
+  daily-tool-drop Hilltop NZ councils"):** two rivers reskins shipped (NZ rivers 3→5), and a health
+  target that died on the liveness gate.
+  - **Alberta ER waits (ROADMAP #5) is DEAD.** robots was clean (`albertahealthservices.ca` fences only
+    `/org/`+`/rls/`), but the AHS wait-times page is now just a landing page linking
+    `waittimes.alberta.ca` — which serves **"Alberta Wait Times Reporting is no longer available"** (443
+    hangs from here; http 200 returns the retired-service notice). The **Westpower/PNM liveness lesson at
+    the domain level**: a robots-clean gate does not prove the data service still exists. → ⛔.
+  - **Health re-roll sweep (all failed to open the domain):** **Nova Scotia** `waittimes.novascotia.ca`
+    is robots-clean + reachable but is a **surgical/procedure wait-list** site (pick a surgeon/procedure —
+    hip replacement, MRI, cataract), slow-moving + wrong mechanic + low hoard value, not the live ED queue.
+    **WRHA Winnipeg** `/wait-times/` ("My Right Care") is a WordPress page with **no live ED board on it**
+    (the feed is elsewhere). **Saskatchewan** host NXDOMAIN. Lesson: live-ED-wait feeds keep getting
+    decommissioned/moved — health needs a *verified-live* target, not just a robots-clean one. Health
+    stays the biggest open domain (ROADMAP #31).
+  - **Hilltop reskins (the win):** gated the classic `data.hts` SiteList across 16 candidate hosts. **Live
+    + robots-unfenced → built:** **Northland** `hilltop.nrc.govt.nz` (robots 404, 1126 sites,
+    `sources/northlandrivers.py`), **West Coast** `hilltop.wcrc.govt.nz` (robots 404, 120 sites,
+    `sources/westcoastrivers.py`) — both pure ~22-line subclasses over `trove/hilltop.py`, zero new logic.
+    Verified: Northland "Awanui at School Cut" Flow 6.36 m3/s (−16.6%/24h, receding); West Coast "Buller Rv
+    @ Longford" 1417 mm. **Skip records:** ECan `data.ecan.govt.nz` + Tasman `envdata.tasman.govt.nz` =
+    `Disallow: /` ⛔ (Tasman *does* serve 749 sites, but robots-fenced — respect it). **New sub-pattern
+    (🟡):** Otago/BoP `envdata.*` **front Hilltop behind a `/Data` web-app** — the classic `.hts` SiteList
+    isn't served (`data.hts`→404 Otago / 200-but-empty BoP); cracking them needs the app's own AJAX
+    endpoint. Taranaki `extranet.trc.govt.nz/getdata` serves 325 sites but robots **503** (ambiguous —
+    re-gate). Data lessons for future reskins: gauges are often **Stage-only** (no Flow); offline gauges
+    return `<HilltopServer><Error>No data…</Error></HilltopServer>` (200 OK, handled → skipped, so a busy
+    term can look empty — pick a live gauge for the demo).
 
 - **mbhydro gate (2026-07-08, Manitoba Hydro outages — ROADMAP #2 "more ArcGIS outage/utility feeds";
   utilities 1->2, opened Canada):** the reusable ArcGIS FS class's own discovery mechanism did the

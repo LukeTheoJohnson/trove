@@ -112,6 +112,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 | avalanche | region slug       | NZ backcountry avalanche danger rating (1-5) per elevation band, as-issued daily + its revision (drift); deal = Considerable+ (>=3) | keyless page-called avalanche.net.nz /api/forecast |
 | mdcrivers | gauge site name   | Marlborough (NZ) river flow/level + flood-onset rise (1.5x in 24h) | keyless MDC Hilltop XML |
 | horizonsrivers | gauge site name | Manawatu-Whanganui (NZ) river flow/level + flood-onset rise | keyless Horizons Hilltop XML |
+| northlandrivers | gauge site name | Northland (NZ) river flow/level + flood-onset rise (subtropical far north) | keyless NRC Hilltop XML |
+| westcoastrivers | gauge site name | West Coast (NZ) river flow/level + flood-onset rise (wettest region; flashy alpine rivers) | keyless WCRC Hilltop XML |
 | nswrfs  | incident id         | NSW (AU) bush/grass fire lifecycle: alert level escalating (Advice->Watch and Act->Emergency Warning) + size, then resolution; deal = out-of-control fire at Watch and Act+ | keyless RFS majorIncidents feed |
 | vicemergency | event id        | Victoria (AU) all-hazards warnings/incidents: alert-level lifecycle across fire/flood/storm; deal = Watch and Act+ | keyless VicEmergency GeoJSON |
 | sacfs   | incident id         | South Australia (AU) CFS incidents: response level + status (GOING->CONTROLLED); deal = still GOING | keyless SA CFS feed |
