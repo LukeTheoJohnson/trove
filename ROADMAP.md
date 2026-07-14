@@ -58,7 +58,8 @@ ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop tar
 | **civic & government** | civic311 *(nyc + chicago + sf 311 backlogs)* | **new (1) — opened 2026-07-14 (queue mechanic)** |
 
 **Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
-rentals (listing lifecycle) · jobs / labour market · streaming & content availability (leaving/arriving)
+rentals (listing lifecycle) · **jobs / labour market** (✅ Arbeitnow harvested 2026-07-14, §3 2g — first
+buildable candidate) · streaming & content availability (leaving/arriving)
 · marine / maritime (AIS vessel tracking, port congestion — coastal tides + offshore buoys now covered)
 · sports (scores, odds-drift — gambling, off-brand for a public repo) · agriculture / commodities (dairy,
 livestock) · telecom / internet status
@@ -99,6 +100,7 @@ dining / reservation availability.
 | SG | narrow | taxi, carpark |
 | CA | **(3 genres)** | mbhydro + bchydro (outages), bixi + torontobike (bikeshare), 2026-07-14; huge open-data surface still largely untouched |
 | LatAm | **new (1) — opened 2026-07-14** | ecobici (Mexico City bike-share); Tembici/Mibici + more are named GBFS reskins (§3 2b) |
+| Asia | **🟡 candidate (2026-07-14)** | HK Observatory (weather+warnings) harvested from public-apis (§3 2g); wider Asia + Japan still untouched |
 | rest of world | **none** | Japan, wider Asia, Africa untouched |
 
 ---
@@ -239,6 +241,25 @@ not a quarterly archive — the melbped precedent).
 | 47 | **MetService NZ marine/surf** *(parked)* | forecast-drift | 🟡 robots open, `publicData` paths moved — bundle recon | M–H | NZ marine |
 | 48 | **GeoNet Tilde coastal sea level** *(parked)* + more NDBC / CO-OPS stations | telemetry | 🟡 `/v4/data/…` path unresolved; stations are config rows | M | NZ tsunami/coastal + marine breadth |
 
+**2g — `public-apis` funnel harvest** (mined 2026-07-14). `github.com/public-apis/public-apis` (the
+~330k-star curated directory) is a recurring **Phase-0 sourcing funnel** — a *menu* of endpoints, not a
+capture engine (a different lane: it discovers, trove hoards). Parse its README, keep `Auth=No` +
+`HTTPS=Yes` (~680 rows), then **most die at trove's filters**: keyed after all, *not* ephemeral (jokes/
+dictionaries/reference), archived-elsewhere (crypto / official FX = frankfurter class / defunct COVID
+trackers), or robots-fenced. Its 65 **Government** + 23 **Open Data** rows are national **CKAN/Socrata/
+ArcGIS portals** = funnels for §2, not single sources. Survivors after triage + a live robots+liveness
+gate (re-run the funnel any time targets run low):
+
+| # | target | mechanic | gate (2026-07-14) | hoard | fills |
+|---|--------|----------|-------------------|-------|-------|
+| 49 | **Arbeitnow** (`arbeitnow.com/api/job-board-api`, EU/remote jobs) | listing lifecycle | ✅ robots allows the api path; live job JSON | M–H | **opens the jobs / labour-market domain** (Axis-A white space) |
+| 50 | **Hong Kong Observatory** (`data.weather.gov.hk/weatherAPI/opendata`) | forecast-drift / warning | ✅ robots fences only `/aviat/,/cis/…`; live rainfall+warning JSON | M–H | **opens Asia** (weather + warnings) |
+| 51 | **IPMA** (`api.ipma.pt/open-data`, Portugal weather) | forecast-drift | ✅ robots 404; live forecast JSON | M–H | EU metno twin |
+| 52 | **Luchtmeetnet** (`api.luchtmeetnet.nl`, NL air quality / RIVM) | telemetry + forecast | ✅ robots 403-missing; paginated station JSON | M | official EU airquality twin (forecast + actual) |
+| 53 | **Energinet** (`api.energidataservice.dk`, DK energy) | price / telemetry | ✅ robots 404; live `Elspotprices` JSON | M | EU electricity depth (DK/DE price areas) |
+| 54 | **BC Ferries** (`bcferriesapi.ca`) | **scarcity** | ✅ robots 404; `/api/v2/capacity/` live but needs a terminal-pair param — one recon pass | **H** | **sailing-capacity filling** (new ferry transport sub-domain, CA) |
+| 55 | **paralelo.bo** (Bolivia parallel-market USD/BOB) | price / macro | 🟡 robots fences only `/api/admin/`, but `/api` serves the Next.js app — the JSON endpoint needs a bundle-grep | **H** | **un-rebuildable black-market FX** (no one archives the parallel-rate series); opens LatAm macro |
+
 ### Tier 3 — speculative / low-value (park until a steer wants them)
 
 - **seismic / volcano breadth** — ~~**USGS earthquakes**~~ ✅ **DONE 2026-07-14** (`usgsquakes`, global geonet twin) · EMSC seismicportal ·
@@ -280,3 +301,8 @@ rate-limited, fails the reachability gate; open gate but unbuildable interactive
    ✅/🟡 is a *starting* read, not a guarantee.
 4. On completion: move the row to `backlog.md` (Ported), update §1 counts + the Axis tables, and add
    any newly-discovered target (or a fresh ⛔ ruling) back into §3 so the roadmap compounds.
+5. **When the hitlist runs low, re-run a sourcing funnel** to refill it. The standing funnel is
+   `github.com/public-apis/public-apis` (§3 2g): parse its README, keep `Auth=No`+`HTTPS=Yes`, drop the
+   non-ephemeral / archived / portal rows, then robots+liveness-gate the survivors into §3. It's a
+   *discovery* menu, not a capture engine — a different lane from trove; it feeds Phase 0, it doesn't
+   replace the gate.
