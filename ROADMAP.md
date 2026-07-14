@@ -14,7 +14,10 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-12 (62 source files, 13 genres — **northlandrivers + westcoastrivers** added as
+_Last mapped: 2026-07-14 (62 source files, 13 genres — **bixi** (Bixi Montréal bike-share) added as a
+5th GBFS system on `bikeshare.py` (a single `SYSTEMS` config row, **no new file**), opening **CA
+shared-mobility** (CA genres 1→2) and taking the GBFS class 4→5 systems. Prior 2026-07-12:
+**northlandrivers + westcoastrivers** added as
 Hilltop reskins (NZ rivers 3→5, opening Northland + West Coast); **Alberta ER-waits found
 decommissioned → ⛔** on a health re-roll (see §3 #5/#31). Prior 2026-07-11: energex added as a 3rd `outages` NETWORKS row
 (utilities = 1 driver, 3 networks; VIC + SE QLD + CA), still no new file, exercising the ArcGIS class
@@ -87,7 +90,7 @@ dining / reservation availability.
 | EU | some | awattar (DE/AT), swisstransport (CH), frankfurter |
 | US | **thin vs its open-data richness** | mbta, opensky bbox, bikeshare (4 cities) — NWS is robots-fenced, but USGS/NOAA/Socrata/data.gov are wide open |
 | SG | narrow | taxi, carpark |
-| CA | **new (1)** | mbhydro (Manitoba Hydro outages) — opened 2026-07-08; huge open-data surface untouched |
+| CA | **new (2)** | mbhydro (Manitoba Hydro outages, 2026-07-08) + bixi (Bixi Montréal bike-share, 2026-07-14 — 2nd CA genre); huge open-data surface still largely untouched |
 | rest of world | **none** | Japan, wider Asia, LatAm, Africa untouched |
 
 ---
@@ -106,7 +109,7 @@ a new mechanic.
 | class | query shape | built instance | more instances available |
 |-------|-------------|----------------|--------------------------|
 | **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + mbhydro + energex NETWORKS rows), **wildfire** (NIFC/WFIGS) | AU/CA/US utility outages (Energex SE QLD ✅ **done 2026-07-11** — a NETWORKS row + field adapter, no new file; next: another distributor e.g. Ergon/SA Power, or water utilities), council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. Gotchas handled by FeatureBoard: layer isn't always id 0 (resolved by geometry type from `FeatureServer?f=json`); projected geometry (MB Hydro wkid 26914) reprojected via `outSR=4326`. **Gate on liveness** — a public layer can be a dead demo (Westpower 2022+TEST, PNM frozen dates), check the newest `*_UPDATE`/event timestamp. **Named reskins: §3 2a** (Ergon, SA Power, NSW×3, VIC×4, BC Hydro…) |
-| **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (4 systems) | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b** (Ecobici/Vélib'/Bixi/Toronto/US) |
+| **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (5 systems — citibike/baywheels/capitalbikeshare/divvy + **bixi** Montréal CA ✅ 2026-07-14) | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b** (Ecobici/Vélib'/Toronto/US) |
 | **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` via `trove/hilltop.py` | gwrivers, mdcrivers, horizonsrivers, **northlandrivers**, **westcoastrivers** (each a ~20-line subclass) | every open NZ regional-council hydrology server (gate each host; a new council = name + host + label) — see §3 2c. **Gate lesson (2026-07-12):** the classic open `data.hts` SiteList is the buildable form (Northland `hilltop.nrc.govt.nz` ✅ 1126 sites, West Coast `hilltop.wcrc.govt.nz` ✅ 120 sites); **ECan `data.ecan.govt.nz` ⛔ `Disallow: /`** and **Tasman `envdata.tasman.govt.nz` ⛔** (749 sites but robots-fenced); **Otago/BoP `envdata.*` front Hilltop behind a `/Data` web-app — classic `.hts` SiteList not served** (🟡, needs the app's own AJAX endpoint); **Taranaki `extranet.trc.govt.nz/getdata` serves 325 sites but robots 503** (ambiguous — re-gate). Also: many gauges read **Stage only** and offline gauges return `<Error>No data…</Error>` (handled = skipped) |
 | **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped | any ODS portal (cities, agencies) — `limit`≤100 — **named: §3 2d** (France fuel `data.economie.gouv.fr`, Paris) |
 | **CKAN datastore** | `/api/3/action/datastore_search?resource_id=` | — | data.govt.nz, data.gov.au, data.qld live datastore resources — **§3 2d/30** (pick a *live* one, not a quarterly archive) |
@@ -140,7 +143,7 @@ value is comparable. The strategic swings are §3 2e (health, streaming, civic l
 | 4d | ~~**airquality — Sensor.Community**~~ (`sources/airquality.py`) | telemetry / PM | ✅ built 2026-07-07 | L–M | ✅ **DONE** — opened the air-quality domain (global) |
 | 5 | ~~**health — Alberta Health Services ER/ED waits**~~ (CA) | queue / wait-time | ⛔ **DEAD 2026-07-12** — robots was clean but the data service is **decommissioned**: `waittimes.alberta.ca` = "Alberta Wait Times Reporting is no longer available"; the AHS page just links the dead host. The Westpower/PNM liveness lesson at the *domain* level (robots ✅ ≠ live data) | — | health still **open** — see the re-roll sweep under #31 |
 | 5b | **electricity — MISO real-time LMP** (US RTO) | price / em6 twin | ✅ robots 2026-07-11 (`api.misoenergy.org` robots 404 = unfenced, the S3-missing class; keyless `MISORTWD` JSON) | L–M (the RTO archives settlement — PoC, like octopus) | **US electricity** — opens the US into the deepest genre |
-| 5c | **bikeshare — Bixi Montréal** (config row on `bikeshare.py`) | GBFS / scarcity | ✅ robots 2026-07-11 (`gbfs.velobixi.com` robots 404 = unfenced) | **H** | **CA shared-mobility** — a config row + a runtime `gbfs.json` resolve, not a new file |
+| 5c | ~~**bikeshare — Bixi Montréal**~~ (config row on `bikeshare.py`) | GBFS / scarcity | ✅ **DONE 2026-07-14** — `gbfs.velobixi.com` robots 404 re-verified; 1096 stations live | **H** | ✅ **opened CA shared-mobility** — a single `SYSTEMS` config row, no new file (GBFS 4→5) |
 | 5d | **NASA EONET** (global natural-event tracker) | status ordinal / lifecycle | ⛔ **parked** — `/api/v3/events` JSON 503s on nearly every request (rate-limited/flaky, fails the reachability gate) | M | global all-hazards — revisit if the endpoint stabilises |
 
 ### Tier 2 — the deep hitlist (50+ named candidates; gate 🟡 unless marked)
@@ -167,7 +170,8 @@ type:Feature Service`; gate on the newest event timestamp (Westpower/PNM were de
 | 18 | **council roadworks / road-closure ArcGIS layers** | any | roads depth via the class (US IOUs: gate hard — many are Kubra/private = ⛔) |
 
 **2b — GBFS shared-mobility reskins** (config rows on `bikeshare.py`; resolve `gbfs.json` at runtime —
-Bixi already ✅ in Tier 1). Registry: MobilityData `systems.csv`.
+Bixi ✅ **built 2026-07-14**, opened CA; next cheapest CA pick is Bike Share Toronto, #22). Registry:
+MobilityData `systems.csv`.
 
 | # | target | region | fills |
 |---|--------|--------|-------|

@@ -115,7 +115,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### shared mobility
 | source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
 |------------|-------------------------|-------------------|----------------------------------|-------------|
-| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series) | **high** |
+| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). Systems: citibike (NYC) + baywheels (SF) + capitalbikeshare (DC) + divvy (Chicago) + **bixi (Montréal, CA — added 2026-07-14, opened CA shared-mobility)**, each a config row (no new file) | **high** |
 | sgtaxi     | `sources/sgtaxi.py`    | sg (whole fleet) | **ephemeral** (Singapore's island-wide roaming-taxi count swinging with demand/weather; data.gov.sg serves the live count only, no per-minute history) | med-high (shared-mobility supply index; complements bikeshare's per-station view) |
 
 ### parking
@@ -249,6 +249,23 @@ high on this column.
   `/search` disallow.)
 
 ## Notes
+
+- **bixi gate (2026-07-14, Bixi Montréal bike-share — ROADMAP #5c, GBFS class reskin; shared-mobility
+  4→5 systems, opened CA shared-mobility):** the cheapest possible build — the GBFS class already
+  resolves each system's discovery doc at runtime and reads the feed URLs from it, so a new operator is
+  a **single `SYSTEMS` config row, no new file** (the bikeshare twin of the energex NETWORKS-row
+  discipline). Gate: `gbfs.velobixi.com/robots.txt` **404 = unfenced** (the S3 missing-object class, as
+  with the other GBFS hosts); GBFS is published-for-reuse (trip planners) = sanctioned → trove. Recon:
+  discovery `https://gbfs.velobixi.com/gbfs/gbfs.json` → `en`/`fr` language blocks; `_feed_urls` prefers
+  `en`. The `en` `station_information` (1096 stations: `station_id`/`name`/`short_name`/`lat`/`lon`/
+  `capacity`) + `station_status` (`num_bikes_available`/`num_ebikes_available`/`num_docks_available`/
+  `is_renting`/`last_reported`) match the existing `_merge`/`_build` schema **exactly** — zero adapter.
+  Verified live: doctor 1096 stations; search "Berri" → 11 stations (Berri / Jarry 1 bike / 26 docks =
+  a live stockout-risk candidate). is_deal wiring proven offline (renting + ≤2 bikes → deal; 14 bikes or
+  not-renting → not). **Note:** Montréal's French names carry accents (`Métro`) — `safe()` folds to
+  cp1252 (which includes `é`) so trove's cp1252 console renders them and never crashes; the first
+  French-accented GBFS system, exercising exactly the path `safe()` was built for. CA is now 2 genres
+  (outages + shared mobility).
 
 - **Hilltop NZ councils batch + Alberta/health re-roll (2026-07-12, "recon+build Alberta ER waits, then
   daily-tool-drop Hilltop NZ councils"):** two rivers reskins shipped (NZ rivers 3→5), and a health
