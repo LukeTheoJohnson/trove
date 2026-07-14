@@ -53,7 +53,9 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Sources
 
-60 sources in thirteen genres (the same grouping `python trove.py` prints):
+67 sources in fourteen genres (the same grouping `python trove.py` prints); several sources hoard
+multiple boards (bikeshare 16 GBFS systems, outages 5 utility networks, civic311 3 cities) for 88
+boards in total:
 
 ### games / media / collectibles
 | source  | join key            | timeline value                         | API                          |
@@ -78,6 +80,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 | fuelwatch | suburb:address    | WA per-station fuel price (ULP cents/L, legally fixed daily) + below-suburb-avg deal | keyless WA Govt FuelWatch RSS |
 | awattar | market (de/at)      | Germany/Austria EPEX day-ahead hourly spot (Eur/MWh); one `item` seeds ~90 days of hourly history; deal = below the window avg (negative = plunge) | keyless aWATTar marketdata API |
 | carbonintensity | GB region (1-17) | Great Britain grid carbon intensity forecast (gCO2/kWh) + generation mix, as-issued (drift); deal = index "very low"/"low" | keyless National Grid ESO Carbon Intensity API |
+| nyiso   | NY zone (WEST...)   | New York ISO real-time zonal electricity price (LBMP $/MWHr), 5-min; deal = at/below the all-zone avg (US twin of em6/aemo) | keyless NYISO realtime_zone CSV |
+| francefuel | station id       | per-station French forecourt fuel price (`--cc` = grade: gazole/sp95/sp98/e10/e85/gplc), overwritten in place; deal = below the national sample avg | keyless Opendatasoft prix-carburants v2 |
 
 ### currency & macro
 | source  | join key            | timeline value                         | API                          |
@@ -123,6 +127,7 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 | usgs    | USGS site number    | US river streamflow + gauge height at 5-15min telemetry (`--cc` = a US state); flood-onset rise (1.5x in 24h) | keyless USGS Water Services IV |
 | wildfire | IRWIN id           | US wildland fire incident lifecycle: acreage growth + containment % climb, then it's out and drops off the current layer; deal = active fire >=1000 acres and <50% contained | keyless NIFC/WFIGS ArcGIS Feature Service |
 | airquality | sensor id        | live citizen PM2.5/PM10 per air-quality sensor (`--cc` = a curated city); deal = PM2.5 >=25 ug/m3 (unhealthy) | keyless Sensor.Community API |
+| usgsquakes | USGS event id    | global earthquakes (magnitude + place + depth + felt/MMI/tsunami), as-reported then revised; deal = M>=4.5 or tsunami flag (global geonet twin) | keyless USGS FDSN event API |
 
 ### space
 | source  | join key            | timeline value                         | API                          |
@@ -137,6 +142,7 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 | chcflights | dir:type:flightNo:scheduled | Christchurch Airport flight delay-drift (estimate vs schedule) + gate/status churn; deal = delayed/cancelled | keyless christchurchairport.co.nz /api/flights JSON |
 | zqnflights | dir:flightNo:schDate:schTime | Queenstown Airport delay-drift + status churn (NZ's most disruption-prone board); deal = delayed/cancelled | keyless queenstownairport.co.nz /api/flights JSON |
 | opensky | icao24 (in a bbox)  | live aircraft over a region (`--cc` picks the box: nz/au/uk/nyc/sf/la): altitude/speed/heading snapshot, un-rebuildable anon; deal = airborne, <3000m and descending (on approach) | keyless OpenSky Network state vectors (anon) |
+| adsblol | icao hex (in range) | live aircraft near a point (`--cc` region centre+radius: lon/nz/au/syd/nyc/la/sf): altitude (ft)/speed/heading; deal = airborne, <10000ft and sinking (approach); keyless-community opensky twin | keyless adsb.lol community ADS-B |
 
 ### roads & transport
 | source  | join key            | timeline value                         | API                          |
@@ -149,7 +155,7 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 ### shared mobility
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
-| bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes) | keyless open GBFS station feed |
+| bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes); `--cc` picks 1 of 16 systems across US/CA/MX/EU | keyless open GBFS station feed |
 | sgtaxi  | sg (whole fleet)    | Singapore roaming-taxi supply: the island-wide available-taxi count swinging with demand/weather; deal = below 2,000 (tight supply) | keyless data.gov.sg taxi-availability |
 
 ### parking
@@ -161,13 +167,18 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 ### utilities & outages
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
-| outages | network:outage id   | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers; `--cc` picks the network (powercor = VIC AU, mbhydro = Manitoba Hydro CA, energex = SE QLD AU) | keyless ArcGIS Feature Services (one NETWORKS row per utility) |
+| outages | network:outage id   | live electricity outage lifecycle (customers affected + crew status + ETR drift, restored in stages, then it drops off the feed); deal = unplanned outage affecting >=100 customers; `--cc` picks the network (powercor = VIC AU, energex = SE QLD AU, westernpower = WA AU, mbhydro = Manitoba Hydro CA, bchydro = British Columbia CA) | keyless ArcGIS Feature Services (one NETWORKS row per utility) |
 
 ### marine & coastal
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | noaatides | station id        | US coastal water level (ft above MLLW) rising/falling with the tide + storm surge; deal = rising and near the 24h max (high tide/surge) | keyless NOAA CO-OPS datagetter |
 | ndbc    | buoy station id     | offshore buoy sea state: significant wave height + period + wind + water temp; deal = wave height >=3 m (big swell) | keyless NOAA NDBC latest_obs |
+
+### civic & government
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| civic311 | city:request id    | municipal 311 service-request backlog (`--cc` = city: nyc/chicago/sf): a request's age-in-queue + Open->Closed lifecycle (oldest-open board = the current backlog); deal "stale" = still open after 7+ days | keyless city Socrata 311 datasets |
 
 ## Adding a source (~50 lines)
 

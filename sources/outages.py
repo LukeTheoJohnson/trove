@@ -113,6 +113,47 @@ def _mbhydro(a):
                       "type": otype, "etr_verified": (a.get("FIELD_VERIFIED_ETR") or "").strip()}}
 
 
+def _westernpower(a):
+    """Western Power (WA) field adapter: raw attributes -> the common outage dict."""
+    oid = a.get("INCIDENTREF")
+    if not oid:
+        return None
+    area = safe(a.get("AFFECTED_AREA") or "")
+    town = area.split(",", 1)[0] if area else ""
+    return {"oid": str(oid),
+            "customers": to_int(a.get("NOCUSTOMERSIMPACTED")),
+            "status": "",                       # WP publishes no crew-status field (ordinal defaults mid)
+            "cause": (a.get("OUTAGETYPE") or "").strip(),
+            "planned": (a.get("PLANNEDOUTAGE") or "").strip().lower() == "planned",
+            "etr": a.get("ESTIMATEDRESTORATIONTIME") or "",   # already a local date string
+            "start": a.get("OUTAGESTARTTIME") or "",          # already a local date string
+            "updated": epoch_ms(a.get("TIMEADDED")),
+            "where": town or area,
+            "extra": {"town": town, "area": area},
+            "flags": {"ref": str(oid)}}
+
+
+def _bchydro(a):
+    """BC Hydro (CA) field adapter: raw attributes -> the common outage dict."""
+    oid = a.get("GlobalID")
+    if not oid:
+        return None
+    cause = (a.get("CAUSE") or "").strip()
+    muni = safe(a.get("MUNI_DESC") or "")
+    area = safe(a.get("AREA_AFFECTED") or "")
+    return {"oid": str(oid),
+            "customers": to_int(a.get("NUMBER_OF_CUSTOMERS_AFFECTED")),
+            "status": (a.get("CREW_STATUS") or "").strip(),
+            "cause": cause,
+            "planned": any(w in cause.lower() for w in ("planned", "scheduled")),
+            "etr": epoch_ms(a.get("ETR")),
+            "start": epoch_ms(a.get("DATE_OFF")),
+            "updated": epoch_ms(a.get("LAST_UPDATE")),
+            "where": " - ".join(p for p in (muni, area) if p),
+            "extra": {"town": muni, "area": safe(a.get("AREA_DESC") or "")},
+            "flags": {"district": safe(a.get("DISTRICT_DESC") or "")}}
+
+
 # network code -> (label, FeatureServer URL, public outage-map URL, geometry, field adapter).
 NETWORKS = {
     "powercor": ("Powercor",
@@ -127,6 +168,14 @@ NETWORKS = {
                 "https://services.arcgis.com/bfVzktoY0OhzQCDj/arcgis/rest/services/VwEnergexOutages/FeatureServer",
                 "https://www.energex.com.au/outages/current-outages",
                 "point", _energex),
+    "westernpower": ("Western Power",
+                     "https://services2.arcgis.com/tBLxde4cxSlNUxsM/arcgis/rest/services/WP_Outage_Prod/FeatureServer/0",
+                     "https://www.westernpower.com.au/faults-outages/",
+                     "polygon", _westernpower),
+    "bchydro": ("BC Hydro",
+                "https://services9.arcgis.com/Mste3G8wHy9zBnhq/arcgis/rest/services/BC_Hydro_Power_Outages/FeatureServer",
+                "https://www.bchydro.com/power-outages/app/outage-map.html",
+                "point", _bchydro),
 }
 
 # crew-status -> progression ordinal (all networks share the 1-5 scheme); unknown = 2 (mid).
@@ -134,9 +183,9 @@ CREW = {
     "outage reported": 1, "reported": 1, "initial assessment": 1,
     "scheduled": 1, "awaiting": 1,
     "crews assigned": 2, "crew assigned": 2, "assigned": 2, "en route": 2, "enroute": 2,
-    "site assessed": 2,
+    "en_route": 2, "site assessed": 2, "dispatched": 2,
     "crews attending": 3, "crew on site": 3, "on site": 3, "assessing": 3, "attending": 3,
-    "repair in progress": 3, "in progress": 3,
+    "arrived": 3, "repair in progress": 3, "in progress": 3,
     "partially restored": 4, "restored": 5, "cancelled": 5,
 }
 MAJOR = 100    # unplanned outage affecting >= this many customers = a "major" event

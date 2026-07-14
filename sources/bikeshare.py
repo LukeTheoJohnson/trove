@@ -23,7 +23,7 @@ dry (<=2 bikes left) - grab one now / a rebalancing candidate. money() cosmetica
 centi-bike as dollars in the two core-hardcoded spots (5 bikes -> "$5.00"; geonet/appcharts
 precedent); the rich views show "5 bikes / 8 docks".
 
-`--cc` picks the system (default citibike; also baywheels / capitalbikeshare / divvy / bixi). `search`
+`--cc` picks the system (default citibike; 16 systems across US/CA/MX/EU — see `SYSTEMS`). `search`
 filters stations by name substring within the `--cc` system; `item`/`poll` read the system from the
 id itself, so a mixed-system watchlist stays coherent. The client resolves each system's official
 discovery document (resilient to host/path drift) and memoizes both feeds, so a whole poll of any
@@ -44,6 +44,17 @@ SYSTEMS = {
     "capitalbikeshare": "https://gbfs.capitalbikeshare.com/gbfs/gbfs.json",  # Washington DC
     "divvy":           "https://gbfs.divvybikes.com/gbfs/gbfs.json",        # Chicago
     "bixi":            "https://gbfs.velobixi.com/gbfs/gbfs.json",          # Montreal (CA)
+    "torontobike":     "https://tor.publicbikesystem.net/ube/gbfs/v1/gbfs.json",       # Toronto (CA)
+    "ecobici":         "https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json",     # Mexico City (MX)
+    "bluebikes":       "https://gbfs.bluebikes.com/gbfs/gbfs.json",         # Boston (US)
+    "indego":          "https://gbfs.bcycle.com/bcycle_indego/gbfs.json",   # Philadelphia (US)
+    "metrobike":       "https://gbfs.bcycle.com/bcycle_lametro/gbfs.json",  # Los Angeles (US)
+    "madison":         "https://gbfs.bcycle.com/bcycle_madison/gbfs.json",  # Madison WI (US)
+    "boulder":         "https://gbfs.bcycle.com/bcycle_boulder/gbfs.json",  # Boulder CO (US)
+    "oslobike":        "https://gbfs.urbansharing.com/oslobysykkel.no/gbfs.json",       # Oslo (NO)
+    "bergenbike":      "https://gbfs.urbansharing.com/bergenbysykkel.no/gbfs.json",     # Bergen (NO)
+    "trondheimbike":   "https://gbfs.urbansharing.com/trondheimbysykkel.no/gbfs.json",  # Trondheim (NO)
+    "warsawbike":      "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_zs/gbfs.json",  # Warsaw (PL, nextbike)
 }
 BIKES_LOW = 2   # <= this many bikes at a renting station = "running dry" (stockout risk)
 
@@ -119,7 +130,7 @@ class _Client:
 class BikeShareSource(Source):
     name = "bikeshare"
     id_label = "SYSTEM:STATION"
-    cc_default = "citibike"      # GBFS system; --cc baywheels|capitalbikeshare|divvy|bixi
+    cc_default = "citibike"      # GBFS system; --cc <slug> (16 systems in SYSTEMS)
     deal_label = "stockout risk"  # a renting station running dry (<= BIKES_LOW bikes left)
     search_limit_default = 25
     search_header = f"{'BIKES':>5}  {'DOCKS':>5}  {'CAP':>4}  STATION"

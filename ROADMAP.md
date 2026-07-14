@@ -14,9 +14,13 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-14 (62 source files, 13 genres — **bixi** (Bixi Montréal bike-share) added as a
-5th GBFS system on `bikeshare.py` (a single `SYSTEMS` config row, **no new file**), opening **CA
-shared-mobility** (CA genres 1→2) and taking the GBFS class 4→5 systems. Prior 2026-07-12:
+_Last mapped: 2026-07-14 (**67 sources / 88 boards / 14 genres** after the "20 new" width batch — 20
+boards in one pass: 11 GBFS cities (bikeshare 5→16, **ecobici opens LatAm**), 2 outages networks
+(westernpower WA + bchydro BC → 5 networks), and 5 new-file sources: **nyiso** (US electricity),
+**francefuel** (EU fuel), **adsblol** (opensky twin), **usgsquakes** (global), **civic311** (nyc/
+chicago/sf — **opened the civic & government domain + the queue/wait-time mechanic**). Leaned on the
+reusable classes (GBFS/ArcGIS/ODS/Socrata — each board a config row/adapter). Earlier 2026-07-14:
+**bixi** added as the 5th GBFS system (opened CA shared-mobility). Prior 2026-07-12:
 **northlandrivers + westcoastrivers** added as
 Hilltop reskins (NZ rivers 3→5, opening Northland + West Coast); **Alberta ER-waits found
 decommissioned → ⛔** on a health re-roll (see §3 #5/#31). Prior 2026-07-11: energex added as a 3rd `outages` NETWORKS row
@@ -34,23 +38,24 @@ re-verify a host's robots before building; postures drift._
 trove's coverage is best read on **three axes**: domain (genre), signal *mechanic* (the shape of the
 ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop target.
 
-### Axis A — domain / genre (12)
+### Axis A — domain / genre (14)
 
 | genre | sources | depth |
 |-------|---------|-------|
 | games / media / collectibles | steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, epic, steammarket | deep |
-| fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity | deep |
+| fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity, nyiso, francefuel | deep (10; +US electricity + EU fuel 2026-07-14) |
 | currency & macro | frankfurter | **thin (1)** |
 | deals, fares & listings | grabone, grabaseat, bookme, turners, eventcinemas, reverb | good |
 | attention & rank | hackernews, appcharts, melbped | medium |
-| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality | deepest (19; +Northland & West Coast rivers 2026-07-12) |
+| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality, usgsquakes | deepest (20; +global quakes 2026-07-14) |
 | space | spaceweather, sentry, spacelaunch | medium |
-| aviation | chcflights, zqnflights, opensky | medium |
+| aviation | chcflights, zqnflights, opensky, adsblol | medium |
 | roads & transport | nzroads, tfl, mbta, swisstransport | medium |
-| shared mobility | bikeshare, sgtaxi | thin |
+| shared mobility | bikeshare *(16 GBFS systems US/CA/MX/EU)*, sgtaxi | good (2026-07-14: 5→16 systems) |
 | parking | chcparking, sgcarpark | thin |
-| **utilities & outages** | outages *(powercor VIC AU + mbhydro CA + energex SE QLD AU as NETWORKS rows)* | **thin (1 driver, 3 networks)** |
-| **marine & coastal** | noaatides, ndbc *(new 2026-07-07)* | **new (2) — opened this batch** |
+| **utilities & outages** | outages *(powercor VIC + energex SE QLD + westernpower WA + mbhydro CA + bchydro BC as NETWORKS rows)* | **1 driver, 5 networks (AU×3 + CA×2)** |
+| **marine & coastal** | noaatides, ndbc | (2) |
+| **civic & government** | civic311 *(nyc + chicago + sf 311 backlogs)* | **new (1) — opened 2026-07-14 (queue mechanic)** |
 
 **Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
 rentals (listing lifecycle) · jobs / labour market · streaming & content availability (leaving/arriving)
@@ -72,12 +77,14 @@ dining / reservation availability.
 | rank / attention | where eyeballs/crowds are | hackernews, appcharts, melbped |
 | magnitude / telemetry | a measured live value | geonet, gwrivers/mdcrivers/horizonsrivers, opensky (altitude) |
 | listing lifecycle | appear → markdown → vanish | turners, reverb, discogs, grabone |
+| queue / wait-time | age-in-queue + resolve | **civic311 (311 backlog, opened 2026-07-14)** |
 
 **Mechanic white space (under-exploited even where a domain exists):**
 - **auction dynamics** — opening→closing price, bid velocity, sniping. Nothing tracks a *live auction
   clock*. (turners has live-auction cars but hoards the asking price, not the bid trajectory.)
 - **queue / wait-time** — people/jobs ahead of you (ED wait, passport/visa processing, support queue).
-  Zero coverage; a genuinely new scalar shape.
+  **Opened 2026-07-14 by `civic311`** (a 311 request's age-in-queue + Open→Closed lifecycle); still no
+  ED-wait / processing-queue source — the highest-value remaining queue targets (ROADMAP #31/#32/#37).
 - **occupancy / utilisation %** — gym/library/venue busyness, crowd density (beyond parking & docks).
 
 ### Axis C — geography
@@ -85,13 +92,14 @@ dining / reservation availability.
 | region | strength | notes |
 |--------|----------|-------|
 | NZ | **very deep** | fuel, electricity, rivers×3, ski, avalanche, beaches, roads, flights×2, parking, quakes, volcano |
-| AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC + SE QLD)** |
+| AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC + SE QLD + WA)** |
 | UK | good | octopus, carbonintensity, tfl, eafloods |
-| EU | some | awattar (DE/AT), swisstransport (CH), frankfurter |
-| US | **thin vs its open-data richness** | mbta, opensky bbox, bikeshare (4 cities) — NWS is robots-fenced, but USGS/NOAA/Socrata/data.gov are wide open |
+| EU | **good (2026-07-14)** | awattar (DE/AT), swisstransport (CH), frankfurter, **francefuel (FR fuel)**, bikeshare (Oslo/Bergen/Trondheim NO + Warsaw PL) |
+| US | **much deeper (2026-07-14)** | mbta, opensky/adsblol bbox, bikeshare (9 US cities), **nyiso (electricity)**, usgsquakes (global), noaatides/ndbc/usgs, **civic311 (nyc/chicago/sf)** — still room (USGS/NOAA/Socrata/data.gov wide open) |
 | SG | narrow | taxi, carpark |
-| CA | **new (2)** | mbhydro (Manitoba Hydro outages, 2026-07-08) + bixi (Bixi Montréal bike-share, 2026-07-14 — 2nd CA genre); huge open-data surface still largely untouched |
-| rest of world | **none** | Japan, wider Asia, LatAm, Africa untouched |
+| CA | **(3 genres)** | mbhydro + bchydro (outages), bixi + torontobike (bikeshare), 2026-07-14; huge open-data surface still largely untouched |
+| LatAm | **new (1) — opened 2026-07-14** | ecobici (Mexico City bike-share); Tembici/Mibici + more are named GBFS reskins (§3 2b) |
+| rest of world | **none** | Japan, wider Asia, Africa untouched |
 
 ---
 
@@ -108,12 +116,12 @@ a new mechanic.
 
 | class | query shape | built instance | more instances available |
 |-------|-------------|----------------|--------------------------|
-| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + mbhydro + energex NETWORKS rows), **wildfire** (NIFC/WFIGS) | AU/CA/US utility outages (Energex SE QLD ✅ **done 2026-07-11** — a NETWORKS row + field adapter, no new file; next: another distributor e.g. Ergon/SA Power, or water utilities), council hazard/asset layers, hydrant/roadwork/flood layers — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. Gotchas handled by FeatureBoard: layer isn't always id 0 (resolved by geometry type from `FeatureServer?f=json`); projected geometry (MB Hydro wkid 26914) reprojected via `outSR=4326`. **Gate on liveness** — a public layer can be a dead demo (Westpower 2022+TEST, PNM frozen dates), check the newest `*_UPDATE`/event timestamp. **Named reskins: §3 2a** (Ergon, SA Power, NSW×3, VIC×4, BC Hydro…) |
-| **GBFS** | discovery `gbfs.json` → `station_status` | bikeshare (5 systems — citibike/baywheels/capitalbikeshare/divvy + **bixi** Montréal CA ✅ 2026-07-14) | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b** (Ecobici/Vélib'/Toronto/US) |
+| **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + energex + **westernpower** + mbhydro + **bchydro** — 5 NETWORKS rows), **wildfire** (NIFC/WFIGS) | more AU/CA/US utility outages — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. **⛔ found dead/absent 2026-07-14:** Ergon (no separate public outage FS — the Ergon org serves network/structures only), Ausgrid/Endeavour/Essential/SA Power (stale or no public FS). Gotchas handled by FeatureBoard: layer isn't always id 0; projected geometry (wkid 26914/102100) reprojected via `outSR=4326`. Field quirks: Western Power has **no crew-status field** + local date **strings** (not epoch-ms); BC Hydro join key = `GlobalID`. **Gate on liveness** — check the newest `*_UPDATE`/`TIMEADDED` timestamp (a sample feature can be an old planned outage; check the *max*). **Named reskins: §3 2a** |
+| **GBFS** | discovery `gbfs.json` → `station_status` | **bikeshare — 16 systems** (US×9 + CA: bixi/torontobike + MX: **ecobici** + EU: oslobike/bergenbike/trondheimbike/warsawbike); +11 added 2026-07-14 | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b**. Gate lesson: operator-branded hosts (bcycle_*/urbansharing/nextbike/PBSC) work; some Lyft/Smovengo hosts 403 or DNS-fail from here (niceride/velib skipped). Norwegian feeds are lang `nb` (no `en`) — the client falls back to the first language |
 | **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` via `trove/hilltop.py` | gwrivers, mdcrivers, horizonsrivers, **northlandrivers**, **westcoastrivers** (each a ~20-line subclass) | every open NZ regional-council hydrology server (gate each host; a new council = name + host + label) — see §3 2c. **Gate lesson (2026-07-12):** the classic open `data.hts` SiteList is the buildable form (Northland `hilltop.nrc.govt.nz` ✅ 1126 sites, West Coast `hilltop.wcrc.govt.nz` ✅ 120 sites); **ECan `data.ecan.govt.nz` ⛔ `Disallow: /`** and **Tasman `envdata.tasman.govt.nz` ⛔** (749 sites but robots-fenced); **Otago/BoP `envdata.*` front Hilltop behind a `/Data` web-app — classic `.hts` SiteList not served** (🟡, needs the app's own AJAX endpoint); **Taranaki `extranet.trc.govt.nz/getdata` serves 325 sites but robots 503** (ambiguous — re-gate). Also: many gauges read **Stage only** and offline gauges return `<Error>No data…</Error>` (handled = skipped) |
-| **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped | any ODS portal (cities, agencies) — `limit`≤100 — **named: §3 2d** (France fuel `data.economie.gouv.fr`, Paris) |
+| **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped, **francefuel** (`data.economie.gouv.fr` ✅ 2026-07-14) | any ODS portal (cities, agencies) — `limit`≤100; use `where=` ODSQL for server-side filter — **named: §3 2d** (Paris counters, more EU fuel) |
 | **CKAN datastore** | `/api/3/action/datastore_search?resource_id=` | — | data.govt.nz, data.gov.au, data.qld live datastore resources — **§3 2d/30** (pick a *live* one, not a quarterly archive) |
-| **Socrata** | `/resource/<id>.json` | — | US city/state open-data portals — **named: §3 2d/29** (NYC/Chicago/SF live 311, beach quality, ferry) |
+| **Socrata** | `/resource/<id>.json` | **civic311** (NYC + Chicago + SF 311 ✅ 2026-07-14) | more US city/state portals — beach quality, ferry position, restaurant inspections; per-city columns differ (a field adapter each, outages-NETWORKS style) — **named: §3 2d/29** |
 
 ---
 
@@ -142,7 +150,7 @@ value is comparable. The strategic swings are §3 2e (health, streaming, civic l
 | 4c | ~~**wildfire — NIFC/WFIGS**~~ (`sources/wildfire.py`) | ArcGIS FS / lifecycle | ✅ built 2026-07-07 | **H** | ✅ **DONE** — grew the ArcGIS class; US wildfire |
 | 4d | ~~**airquality — Sensor.Community**~~ (`sources/airquality.py`) | telemetry / PM | ✅ built 2026-07-07 | L–M | ✅ **DONE** — opened the air-quality domain (global) |
 | 5 | ~~**health — Alberta Health Services ER/ED waits**~~ (CA) | queue / wait-time | ⛔ **DEAD 2026-07-12** — robots was clean but the data service is **decommissioned**: `waittimes.alberta.ca` = "Alberta Wait Times Reporting is no longer available"; the AHS page just links the dead host. The Westpower/PNM liveness lesson at the *domain* level (robots ✅ ≠ live data) | — | health still **open** — see the re-roll sweep under #31 |
-| 5b | **electricity — MISO real-time LMP** (US RTO) | price / em6 twin | ✅ robots 2026-07-11 (`api.misoenergy.org` robots 404 = unfenced, the S3-missing class; keyless `MISORTWD` JSON) | L–M (the RTO archives settlement — PoC, like octopus) | **US electricity** — opens the US into the deepest genre |
+| 5b | **electricity — MISO real-time LMP** (US RTO) | price / em6 twin | 🟡→ **parked 2026-07-14**: `getLMPConsolidatedTable&returnType=json` returned `{"error":"no data"}` (wrong messageType / off-market-hours). robots 404 clean; revisit with the right broker path. **NYISO (#40) built instead** for US electricity | L–M (PoC, like octopus) | US electricity |
 | 5c | ~~**bikeshare — Bixi Montréal**~~ (config row on `bikeshare.py`) | GBFS / scarcity | ✅ **DONE 2026-07-14** — `gbfs.velobixi.com` robots 404 re-verified; 1096 stations live | **H** | ✅ **opened CA shared-mobility** — a single `SYSTEMS` config row, no new file (GBFS 4→5) |
 | 5d | **NASA EONET** (global natural-event tracker) | status ordinal / lifecycle | ⛔ **parked** — `/api/v3/events` JSON 503s on nearly every request (rate-limited/flaky, fails the reachability gate) | M | global all-hazards — revisit if the endpoint stabilises |
 
@@ -164,8 +172,8 @@ type:Feature Service`; gate on the newest event timestamp (Westpower/PNM were de
 | 12 | **SA Power Networks** | SA, AU | new AU state |
 | 13 | **Ausgrid · Endeavour · Essential Energy** | NSW, AU | opens NSW (3 distributors) |
 | 14 | **AusNet · United Energy · Jemena · CitiPower** | VIC, AU | VIC depth beyond Powercor |
-| 15 | **Western Power** · **Evoenergy** | WA / ACT, AU | opens WA + ACT |
-| 16 | **BC Hydro · Hydro One · Hydro-Québec · Toronto Hydro** | CA | CA depth (mbhydro siblings) |
+| 15 | ~~**Western Power**~~ ✅ **DONE 2026-07-14** (WA, `WP_Outage_Prod` polygon, 145 live) · **Evoenergy** ⛔ (private Sitecore, not ArcGIS) | WA / ACT, AU | opened WA |
+| 16 | ~~**BC Hydro**~~ ✅ **DONE 2026-07-14** (`BC_Hydro_Power_Outages` point, live) · Hydro One / Hydro-Québec / Toronto Hydro (Toronto Hydro FS returned no features — re-gate) | CA | CA outage depth (mbhydro siblings) |
 | 17 | **water-utility main-break / burst-main layers** | any | **new utility (water)** on the same class |
 | 18 | **council roadworks / road-closure ArcGIS layers** | any | roads depth via the class (US IOUs: gate hard — many are Kubra/private = ⛔) |
 
@@ -175,11 +183,11 @@ MobilityData `systems.csv`.
 
 | # | target | region | fills |
 |---|--------|--------|-------|
-| 19 | **Ecobici** (Mexico City) | MX | **opens LatAm** |
+| 19 | ~~**Ecobici** (Mexico City)~~ ✅ **DONE 2026-07-14** (677 stations, `gbfs.mex.lyftbikes.com`) | MX | **opened LatAm** |
 | 20 | **Tembici / Bike Itaú** (Rio, São Paulo) · **Mibici** (Guadalajara) | BR / MX | LatAm depth |
 | 21 | **Vélib' Métropole** (Paris) · **WienMobil Rad** (Vienna) · **Nextbike / Donkey Republic** (multi-city) | EU | EU shared mobility |
-| 22 | **Bike Share Toronto** | CA | CA mobility (Bixi sibling) |
-| 23 | **Bluebikes** (Boston) · **Indego** (Philadelphia) · **Metro Bike Share** (LA) · **Nice Ride** (Minneapolis) | US | US depth |
+| 22 | ~~**Bike Share Toronto**~~ ✅ **DONE 2026-07-14** (`torontobike`, 1050 stations, PBSC) | CA | CA mobility (Bixi sibling) |
+| 23 | ~~**Bluebikes** (Boston) · **Indego** (Philadelphia) · **Metro Bike Share** (LA)~~ ✅ **DONE 2026-07-14** (+ madison + boulder BCycle); **Nice Ride** ⛔ (Lyft/host discovery failed here) | US | US depth (5 cities added) |
 
 **2c — Hilltop NZ regional-council hydrology reskins** (~20-line subclass on `trove/hilltop.py`; gate
 each host on the classic `data.hts` SiteList). **Batch gated 2026-07-12** — NZ rivers 3 → 5.
@@ -198,9 +206,9 @@ not a quarterly archive — the melbped precedent).
 
 | # | target | class | fills |
 |---|--------|-------|-------|
-| 27 | **France fuel — prix-carburants** (`data.economie.gouv.fr`, ODS) | ODS Explore | **EU fuel (spainfuel twin)** — H; 🟡 (local TLS revocation quirk blocked the probe here, not a host verdict) |
+| 27 | ~~**France fuel — prix-carburants**~~ ✅ **DONE 2026-07-14** (`francefuel`, 9805 stations; ODS robots opens /api; earlier TLS quirk was transient) | ODS Explore | **EU fuel (spainfuel twin)** — H |
 | 28 | **Paris Open Data** live counters (parking / footfall) | ODS Explore | EU attention/mobility |
-| 29 | **NYC / Chicago / SF** live Socrata resource (311 queue, beach quality, ferry position) | Socrata | US civic/attention |
+| 29 | ~~**NYC / Chicago / SF** 311 queue~~ ✅ **DONE 2026-07-14** (`civic311`, opened civic domain + queue mechanic); next Socrata: beach quality, ferry position, restaurant inspections | Socrata | US civic/attention |
 | 30 | **data.govt.nz · data.gov.au · data.qld** live datastore resource | CKAN | NZ/AU civic |
 
 **2e — new domain / new mechanic** (the strategic swings — biggest gaps):
@@ -221,19 +229,19 @@ not a quarterly archive — the melbped precedent).
 
 | # | target | mechanic | gate | hoard | fills |
 |---|--------|----------|------|-------|-------|
-| 40 | **NYISO real-time LMP** (`mis.nyiso.com` CSV) | price | ✅ robots 404 (2026-07-11) | L–M (archived) | US electricity |
+| 40 | ~~**NYISO real-time LMP** (`mis.nyiso.com` CSV)~~ ✅ **DONE 2026-07-14** (`nyiso`, 15 zones, `realtime_zone.csv`) | price | ✅ robots 404 | L–M (archived) | US electricity |
 | 41 | **ERCOT** (TX) · **CAISO OASIS** (CA) · **Ontario IESO** (CA) | price | 🟡 (CAISO = heavy SOAP) | L–M | US/CA electricity |
 | 42 | **Elexon BMRS** UK imbalance price · **Singapore USEP** | price | 🟡 | L–M | UK / SG electricity |
 | 43 | **Brazil ANP fuel** · **Austria E-Control Spritpreisrechner** | price | 🟡 | **H** | LatAm / EU fuel |
 | 44 | **GTFS-realtime** vehicle positions / trip delays (pick one agency) | delay-drift | 🟡 (protobuf) | **H** | transit depth |
-| 45 | **adsb.lol / adsb.fi** community ADS-B (keyless) | telemetry | 🟡 | M | opensky twin |
+| 45 | ~~**adsb.lol**~~ ✅ **DONE 2026-07-14** (`adsblol`, robots 404, alt in feet, `alt_baro`="ground"); adsb.fi still open | telemetry | ✅ | M | opensky twin |
 | 46 | **Steam concurrent players** (`GetNumberOfCurrentPlayers`, keyless) | rank / attention | 🟡 | M | attention & rank |
 | 47 | **MetService NZ marine/surf** *(parked)* | forecast-drift | 🟡 robots open, `publicData` paths moved — bundle recon | M–H | NZ marine |
 | 48 | **GeoNet Tilde coastal sea level** *(parked)* + more NDBC / CO-OPS stations | telemetry | 🟡 `/v4/data/…` path unresolved; stations are config rows | M | NZ tsunami/coastal + marine breadth |
 
 ### Tier 3 — speculative / low-value (park until a steer wants them)
 
-- **seismic / volcano breadth** — **USGS earthquakes** (✅ robots 404, 2026-07-11) · EMSC seismicportal ·
+- **seismic / volcano breadth** — ~~**USGS earthquakes**~~ ✅ **DONE 2026-07-14** (`usgsquakes`, global geonet twin) · EMSC seismicportal ·
   Earthquakes Canada · Smithsonian GVP / USGS VNS volcano activity. Fully **archived** → **L** hoard
   (PoC/breadth only; the steam/frankfurter class).
 - **auction close dynamics** — a keyless auction feed (govt/council surplus, some art/collectible

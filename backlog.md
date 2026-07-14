@@ -44,6 +44,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | fuelwatch  | `sources/fuelwatch.py` | suburb:address  | **ephemeral** (WA's legally-fixed daily forecourt price per station, overwritten each day, never archived per-station) | **high** (AU/WA twin of petrolspy/spainfuel; official regulator feed) |
 | awattar    | `sources/awattar.py`   | market (de/at)  | archived (the marketdata endpoint serves the full realized hourly history by `start`/`end`) | low-med (PoC; EU EPEX twin of em6/aemo — demonstrates the `Obs.history` backfill (~90d hourly in one `item`); negative-price plunge flex) |
 | carbonintensity | `sources/carbonintensity.py` | GB region (1-17) | **ephemeral** (the per-region carbon-intensity *forecast as issued*; NG ESO archives realized intensity but not the as-issued regional forecast series) | med-high (forecast-drift class; carbon twin of the electricity-price set) |
+| nyiso      | `sources/nyiso.py`     | NY zone         | ephemeral 5-min spot *state* but **archived** (NYISO archives settlement) | low-med (US electricity; em6/aemo twin; keyless realtime_zone CSV; 2026-07-14 batch) |
+| francefuel | `sources/francefuel.py`| station id      | **ephemeral** (per-station French forecourt pump price, overwritten in place, never archived per-station) | **high** (EU fuel; spainfuel/petrolspy twin; keyless Opendatasoft prix-carburants v2; 2026-07-14 batch) |
 
 ### currency & macro
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -89,6 +91,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | usgs       | `sources/usgs.py`      | USGS site number   | ephemeral *state* but **archived** (USGS keeps the full record; rebuildable, the octopus/frankfurter class) | low-med (fills US geography; US twin of gwrivers; live flood flex; 2026-07-07 batch) |
 | wildfire   | `sources/wildfire.py`  | IrwinID            | **ephemeral** (a US wildfire's acreage-growth + containment-% lifecycle, then it's out and drops off the *current* WFIGS layer; no queryable per-incident growth history) | **high** (reused the ArcGIS FS class for a new hazard; US geography; 2026-07-07 batch) |
 | airquality | `sources/airquality.py`| sensor id          | ephemeral PM reading but **archived** (Sensor.Community keeps its own history; noisy citizen sensors) | low-med (opened the air-quality domain; global; 2026-07-07 batch) |
+| usgsquakes | `sources/usgsquakes.py`| USGS event id      | ephemeral as-reported *state* but **archived** (USGS keeps the authoritative catalogue + revisions) | low (global earthquakes; geonet twin, worldwide; 2026-07-14 batch) |
 
 ### space
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -103,6 +106,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | chcflights | `sources/chcflights.py`  | dir:type:flightNo:scheduled | **ephemeral** (a flight's estimate/gate/status drift from schedule in the hours before it operates; the board drops it once it operates and no public archive keeps the minute-by-minute progression) | **high** |
 | zqnflights | `sources/zqnflights.py`  | dir:flightNo:schDate:schTime | **ephemeral** (same class as chcflights — and ZQN's weather-prone alpine runway makes its board NZ's most disruption-rich) | **high** |
 | opensky    | `sources/opensky.py`   | icao24 (in a bbox) | **ephemeral** (live aircraft state vectors over a region; anonymous OpenSky serves the live snapshot only — history needs a contributor account) | med-high (un-rebuildable for anon; region-wide complement to the single-airport boards) |
+| adsblol    | `sources/adsblol.py`   | icao hex (in range)| **ephemeral** (live aircraft near a point; adsb.lol keeps no free per-aircraft history) | med (keyless-community opensky twin, different network/coverage; 2026-07-14 batch) |
 
 ### roads & transport
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -115,7 +119,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### shared mobility
 | source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
 |------------|-------------------------|-------------------|----------------------------------|-------------|
-| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). Systems: citibike (NYC) + baywheels (SF) + capitalbikeshare (DC) + divvy (Chicago) + **bixi (Montréal, CA — added 2026-07-14, opened CA shared-mobility)**, each a config row (no new file) | **high** |
+| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). **16 systems**, each a config row (no new file): citibike/baywheels/capitalbikeshare/divvy/bluebikes/indego/metrobike/madison/boulder (US) + bixi/torontobike (CA) + **ecobici (MX — opened LatAm)** + oslobike/bergenbike/trondheimbike (NO) + warsawbike (PL). +11 added 2026-07-14 | **high** |
 | sgtaxi     | `sources/sgtaxi.py`    | sg (whole fleet) | **ephemeral** (Singapore's island-wide roaming-taxi count swinging with demand/weather; data.gov.sg serves the live count only, no per-minute history) | med-high (shared-mobility supply index; complements bikeshare's per-station view) |
 
 ### parking
@@ -127,7 +131,12 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### utilities & outages
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
-| outages    | `sources/outages.py`   | network:outage id | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; three networks as NETWORKS rows: Powercor VIC AU 2026-07-07 + Manitoba Hydro CA 2026-07-08 + Energex SE QLD AU 2026-07-11 — the mbhydro build **opened Canada** and was folded from its own clone file into a network row in the 2026-07-08 consolidation, its 13 obs re-keyed `mbhydro:<id>` into outages.db; energex added as a pure NETWORKS row + field adapter, 126 live events, no new file) |
+| outages    | `sources/outages.py`   | network:outage id | **ephemeral** (a live electricity outage's customers-affected + crew-status + ETR-drift lifecycle, restored in stages then dropped off the feed; nobody archives the per-outage progression) | **high** (opened the utilities genre via the reusable keyless-ArcGIS-FeatureService class; **five networks** as NETWORKS rows: Powercor VIC AU 2026-07-07 + Manitoba Hydro CA 2026-07-08 + Energex SE QLD AU 2026-07-11 + **Western Power WA AU + BC Hydro British Columbia CA (both 2026-07-14)** — the mbhydro build **opened Canada** and was folded from its own clone file into a network row in the 2026-07-08 consolidation; energex/westernpower/bchydro added as pure NETWORKS rows + field adapters, no new file. WA/BC deepen AU + CA) |
+
+### civic & government
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| civic311   | `sources/civic311.py`  | city:request id | **ephemeral** (a 311 request's age-in-queue + Open→Closed lifecycle; the city serves current state, no public archive keeps the wait-in-queue trajectory) | med-high (**opened the civic & government domain + the queue/wait-time mechanic** trove lacked; 3 US cities nyc/chicago/sf as config rows + Socrata field adapters; 2026-07-14 batch) |
 
 ### marine & coastal
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -249,6 +258,37 @@ high on this column.
   `/search` disallow.)
 
 ## Notes
+
+- **"20 new" width batch (2026-07-14, second drop of the day after bixi; +20 boards, +5 source files,
+  +1 genre; 67 sources / 88 boards / 14 genres):** the biggest single batch — leaned hard on the
+  reusable classes (each new board a config row / thin adapter, the ROADMAP §2 payoff) plus 5 new-file
+  sources across 6 genres. **Boards:** 11 GBFS cities (bikeshare 5→16: torontobike/ecobici[**opens
+  LatAm**]/bluebikes/indego/metrobike/madison/boulder/oslobike/bergenbike/trondheimbike/warsawbike —
+  US/CA/MX/EU) + 2 outages networks (westernpower WA + bchydro BC, both live) + nyiso (US electricity,
+  em6/aemo twin) + francefuel (**EU fuel**, spainfuel twin, high) + adsblol (opensky twin) + usgsquakes
+  (global geonet twin) + **civic311** (nyc/chicago/sf — **opened the civic & government domain + the
+  queue/wait-time mechanic** the ROADMAP flagged as trove's biggest Axis-B gap). **Gate records:** all
+  keyless, robots-gated first — GBFS feed hosts 404/missing (S3 class), `services*.arcgis.com` 403=missing,
+  `api.misoenergy.org`/`mis.nyiso.com`/`earthquake.usgs.gov`/`api.adsb.lol` robots 404, France ODS fences
+  only /login,/publish,/backoff (not /api), city Socrata `/resource/` open. **Field/liveness lessons:**
+  Western Power polygon wkid 102100, join `INCIDENTREF`, explicit `PLANNEDOUTAGE`, no crew-status field
+  (ordinal defaults mid), start/ETR are **local date strings** not epoch-ms — liveness confirmed by
+  newest `TIMEADDED`=today (a sample feature can be an old planned outage; check the max, not the first).
+  BC Hydro point layer, join `GlobalID`, `CREW_STATUS` dispatched/en_route/arrived added to the shared
+  CREW map. France flux stores lat/lon as **int×10⁵** and price in euros (guard a millième form); ODS
+  caps `limit` at 100 (melbped lesson). civic311: NYC/Chicago/SF Socrata columns **all differ** (per-city
+  adapter, outages-NETWORKS style); the naive oldest-open board surfaced **6-year zombie records** (311s
+  never formally closed) → bounded to the **last 30 days** for the genuine current backlog. adsb.lol
+  altitude is **feet** and `alt_baro` can be the string "ground". **Skipped/dropped:** MISO real-time
+  (`getLMPConsolidatedTable` returned "no data" — NYISO covers US electricity cleanly instead); Ergon
+  Energy (no clean separate public outage FS — the Ergon org publishes network/structures, not outages;
+  the Energex org's SE feed is Energex's own); Ausgrid/Endeavour/Essential/SA Power (stale or no public
+  ArcGIS FS per the recon); GBFS niceride/velib/wienmobil (bad/blocked discovery URLs or near-empty).
+  **Process lesson (recorded in [[reference_consumer_api_cli_playbook]]):** parallel recon subagents did
+  the discovery work but **buried their raw payloads in closing summaries** (their final message is the
+  only return value, and `SendMessage` wasn't available to pull the rest) — direct batched curl/python
+  recon in the main thread was faster and kept every field. If delegating recon, the agent's *final
+  message must be the raw data itself*, not a recap.
 
 - **bixi gate (2026-07-14, Bixi Montréal bike-share — ROADMAP #5c, GBFS class reskin; shared-mobility
   4→5 systems, opened CA shared-mobility):** the cheapest possible build — the GBFS class already
