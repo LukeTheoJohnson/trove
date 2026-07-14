@@ -189,31 +189,12 @@ boards in total:
 |---------|---------------------|----------------------------------------|------------------------------|
 | arbeitnow | job slug          | EU/remote tech job-board listing lifecycle: a posting appears, sits on the board, then vanishes when filled/expired (a time-to-fill proxy); deal "fresh" = posted in the last 48h | keyless Arbeitnow job-board-api |
 
-## Adding a source (~50 lines)
-
-Create `sources/<name>.py` with a `Source` subclass and `SOURCE = <Class>()`:
-
-```python
-class FooSource(Source):
-    name = "foo"; id_label = "ID"; deal_label = "sale"
-    def client(self, args):       ...   # build an API client
-    def doctor(self, cl):         return ok, "detail"
-    def search(self, cl, term, args) -> list[tuple[Item, Obs|None]]: ...
-    def fetch(self, cl, item_id)  -> tuple[Item, Obs] | None: ...   # rich lookup
-    def is_deal(self, obs)        -> bool: ...                      # source's "deal" rule
-    def deal_line(self, item, obs)-> str: ...
-SOURCE = FooSource()
-```
-
-Add the name to `SOURCES` in `trove.py`. The whole `doctor/search/item/watch/poll/deals/drops/export`
-command set comes for free. Optionally override `refresh()` for a leaner poll endpoint (discogs does
-this: rich `/releases` for `item`, lean `/marketplace/stats` for `poll`).
 
 ## Etiquette
 
-For personal use only. The bundled sources only hit sanctioned, keyless APIs that the page or app itself calls.
-`poll` spaces its requests, the `User-Agent` is real and descriptive, and the cached data stays
-local. Please respect the terms of service and `robots.txt` of each source.
+For personal use only. The bundled sources only hit sanctioned and keyless APIs that the page or source app itself calls.
+`poll` spaces its requests iwth a real `User-Agent` and the cached data stays
+local. Respects the terms of service and `robots.txt` of each source.
 
 ## License
 
