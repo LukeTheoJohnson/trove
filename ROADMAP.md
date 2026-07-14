@@ -14,8 +14,14 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-14 (**72 sources / 93 boards / 15 genres**. Latest: the `public-apis` funnel
-harvest (§3 2g) built **5 survivors** — `arbeitnow` (**opened jobs & labour domain**), `hkweather`
+_Last mapped: 2026-07-15 (**74 sources / 103 boards / 15 genres**. Latest: the **"10 new" batch** —
+8 GBFS cities (bikeshare 16→24, opening **6 new countries**: vienna AT / milan IT / barcelona ES +
+**deep LatAm** rio·saopaulo BR / santiago CL / baires AR / bogota CO) built by teaching the GBFS class
+**v3.0** (`data.feeds` shape + `num_vehicles_available` + localised names; §2) — plus 2 new-file
+public-apis survivors: **energinet** (EU/Nordic day-ahead electricity, em6/aemo/nyiso twin; used the
+live `DayAheadPrices` after finding `Elspotprices` frozen at 2025-09-30) and **luchtmeetnet** (official
+NL/RIVM air quality, calibrated twin of the citizen `airquality`). Prior 2026-07-14: the `public-apis`
+funnel harvest (§3 2g) built **5 survivors** — `arbeitnow` (**opened jobs & labour domain**), `hkweather`
 (**opened Asia**), `ipma` (EU weather), `bcferries` (ferry scarcity, CA), `paralelobo` (un-rebuildable
 Bolivia parallel USD/BOB, LatAm macro). Earlier the "20 new" width batch — 20
 boards in one pass: 11 GBFS cities (bikeshare 5→16, **ecobici opens LatAm**), 2 outages networks
@@ -46,15 +52,15 @@ ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop tar
 | genre | sources | depth |
 |-------|---------|-------|
 | games / media / collectibles | steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, epic, steammarket | deep |
-| fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity, nyiso, francefuel | deep (10; +US electricity + EU fuel 2026-07-14) |
+| fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity, nyiso, francefuel, energinet | deep (11; +US electricity + EU fuel 2026-07-14; +DK/Nordic electricity 2026-07-15) |
 | currency & macro | frankfurter, paralelobo *(Bolivia parallel USD)* | thin (2; +LatAm parallel FX 2026-07-14) |
 | deals, fares & listings | grabone, grabaseat, bookme, turners, eventcinemas, reverb | good |
 | attention & rank | hackernews, appcharts, melbped | medium |
-| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality, usgsquakes, hkweather, ipma | deepest (22; +HK & Portugal forecast 2026-07-14) |
+| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality, usgsquakes, hkweather, ipma, luchtmeetnet | deepest (23; +HK & Portugal forecast 2026-07-14; +official NL air quality 2026-07-15) |
 | space | spaceweather, sentry, spacelaunch | medium |
 | aviation | chcflights, zqnflights, opensky, adsblol | medium |
 | roads & transport | nzroads, tfl, mbta, swisstransport, bcferries *(ferry scarcity)* | medium (+ferries 2026-07-14) |
-| shared mobility | bikeshare *(16 GBFS systems US/CA/MX/EU)*, sgtaxi | good (2026-07-14: 5→16 systems) |
+| shared mobility | bikeshare *(24 GBFS systems US/CA/MX/EU/LatAm)*, sgtaxi | good (2026-07-14: 5→16; 2026-07-15: 16→24, +LatAm depth + GBFS v3) |
 | parking | chcparking, sgcarpark | thin |
 | **utilities & outages** | outages *(powercor VIC + energex SE QLD + westernpower WA + mbhydro CA + bchydro BC as NETWORKS rows)* | **1 driver, 5 networks (AU×3 + CA×2)** |
 | **marine & coastal** | noaatides, ndbc | (2) |
@@ -99,11 +105,11 @@ dining / reservation availability.
 | NZ | **very deep** | fuel, electricity, rivers×3, ski, avalanche, beaches, roads, flights×2, parking, quakes, volcano |
 | AU | strong | fuel (WA), electricity (NEM), footfall, emergency×3, beach, **outages (VIC + SE QLD + WA)** |
 | UK | good | octopus, carbonintensity, tfl, eafloods |
-| EU | **good (2026-07-14)** | awattar (DE/AT), swisstransport (CH), frankfurter, **francefuel (FR fuel)**, bikeshare (Oslo/Bergen/Trondheim NO + Warsaw PL) |
+| EU | **deeper (2026-07-15)** | awattar (DE/AT), swisstransport (CH), frankfurter, **francefuel (FR fuel)**, **energinet (DK/Nordic electricity)**, **luchtmeetnet (NL air quality)**, bikeshare (Oslo/Bergen/Trondheim NO + Warsaw PL + **Vienna AT + Milan IT + Barcelona ES**) |
 | US | **much deeper (2026-07-14)** | mbta, opensky/adsblol bbox, bikeshare (9 US cities), **nyiso (electricity)**, usgsquakes (global), noaatides/ndbc/usgs, **civic311 (nyc/chicago/sf)** — still room (USGS/NOAA/Socrata/data.gov wide open) |
 | SG | narrow | taxi, carpark |
 | CA | **(3 genres)** | mbhydro + bchydro (outages), bixi + torontobike (bikeshare), 2026-07-14; huge open-data surface still largely untouched |
-| LatAm | **new (2) — opened 2026-07-14** | ecobici (Mexico City bike-share) + paralelobo (Bolivia parallel-market USD macro); Tembici/Mibici + more are named GBFS reskins (§3 2b) |
+| LatAm | **much deeper (2026-07-15)** | ecobici (Mexico City) + **rio·saopaulo (BR) + santiago (CL) + baires (AR) + bogota (CO)** bike-share (Bike Itau/PBSC GBFS v3) + paralelobo (Bolivia parallel-market USD macro); more GBFS reskins still named in §3 2b |
 | Asia | **new (1) — opened 2026-07-14** | hkweather (HK Observatory forecast + warnings); wider Asia + Japan still untouched |
 | rest of world | **none** | Japan, wider Asia, Africa untouched |
 
@@ -123,7 +129,7 @@ a new mechanic.
 | class | query shape | built instance | more instances available |
 |-------|-------------|----------------|--------------------------|
 | **ArcGIS Feature Service** | `/FeatureServer/<n>/query?where=1=1&outFields=*&f=json` via `trove/arcgis.py` | **outages** (powercor + energex + **westernpower** + mbhydro + **bchydro** — 5 NETWORKS rows), **wildfire** (NIFC/WFIGS) | more AU/CA/US utility outages — discover via `arcgis.com/sharing/rest/search?q=<term> type:Feature Service`. **⛔ found dead/absent 2026-07-14:** Ergon (no separate public outage FS — the Ergon org serves network/structures only), Ausgrid/Endeavour/Essential/SA Power (stale or no public FS). Gotchas handled by FeatureBoard: layer isn't always id 0; projected geometry (wkid 26914/102100) reprojected via `outSR=4326`. Field quirks: Western Power has **no crew-status field** + local date **strings** (not epoch-ms); BC Hydro join key = `GlobalID`. **Gate on liveness** — check the newest `*_UPDATE`/`TIMEADDED` timestamp (a sample feature can be an old planned outage; check the *max*). **Named reskins: §3 2a** |
-| **GBFS** | discovery `gbfs.json` → `station_status` | **bikeshare — 16 systems** (US×9 + CA: bixi/torontobike + MX: **ecobici** + EU: oslobike/bergenbike/trondheimbike/warsawbike); +11 added 2026-07-14 | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b**. Gate lesson: operator-branded hosts (bcycle_*/urbansharing/nextbike/PBSC) work; some Lyft/Smovengo hosts 403 or DNS-fail from here (niceride/velib skipped). Norwegian feeds are lang `nb` (no `en`) — the client falls back to the first language |
+| **GBFS** | discovery `gbfs.json` → `station_status` | **bikeshare — 24 systems** (US×9 + CA: bixi/torontobike + MX: **ecobici** + EU: oslobike/bergenbike/trondheimbike/warsawbike/**vienna/milan/barcelona** + LatAm: **rio/saopaulo/santiago/baires/bogota**); +11 on 2026-07-14, +8 on 2026-07-15 | any dock-mobility operator worldwide (systems.csv registry) — **named picks: §3 2b**. **Now handles GBFS v2 + v3.0** (2026-07-15): v3 drops the language layer (`data.feeds` directly), renames `num_bikes_available`→`num_vehicles_available`, and makes `name` a localised `[{text,language}]` list — a `_feed_urls` v3 branch + `num_vehicles_available` fallback + `_localized()` cover all three. Gate lesson: operator-branded hosts (bcycle_*/urbansharing/nextbike/PBSC/publicbikesystem.net) work; some Lyft/Smovengo hosts 403 or DNS-fail (niceride/velib/helsinki skipped). Pull discovery URLs from the MobilityData `systems.csv` registry (one fetch), don't guess hosts. Norwegian/Italian feeds have no `en` — the client falls back to the first language |
 | **Hilltop XML** | `?Request=GetData&Site=&Measurement=Flow` via `trove/hilltop.py` | gwrivers, mdcrivers, horizonsrivers, **northlandrivers**, **westcoastrivers** (each a ~20-line subclass) | every open NZ regional-council hydrology server (gate each host; a new council = name + host + label) — see §3 2c. **Gate lesson (2026-07-12):** the classic open `data.hts` SiteList is the buildable form (Northland `hilltop.nrc.govt.nz` ✅ 1126 sites, West Coast `hilltop.wcrc.govt.nz` ✅ 120 sites); **ECan `data.ecan.govt.nz` ⛔ `Disallow: /`** and **Tasman `envdata.tasman.govt.nz` ⛔** (749 sites but robots-fenced); **Otago/BoP `envdata.*` front Hilltop behind a `/Data` web-app — classic `.hts` SiteList not served** (🟡, needs the app's own AJAX endpoint); **Taranaki `extranet.trc.govt.nz/getdata` serves 325 sites but robots 503** (ambiguous — re-gate). Also: many gauges read **Stage only** and offline gauges return `<Error>No data…</Error>` (handled = skipped) |
 | **Opendatasoft Explore** | `/api/explore/v2.1/catalog/datasets/<id>/records` | melbped, **francefuel** (`data.economie.gouv.fr` ✅ 2026-07-14) | any ODS portal (cities, agencies) — `limit`≤100; use `where=` ODSQL for server-side filter — **named: §3 2d** (Paris counters, more EU fuel) |
 | **CKAN datastore** | `/api/3/action/datastore_search?resource_id=` | — | data.govt.nz, data.gov.au, data.qld live datastore resources — **§3 2d/30** (pick a *live* one, not a quarterly archive) |
@@ -190,8 +196,8 @@ MobilityData `systems.csv`.
 | # | target | region | fills |
 |---|--------|--------|-------|
 | 19 | ~~**Ecobici** (Mexico City)~~ ✅ **DONE 2026-07-14** (677 stations, `gbfs.mex.lyftbikes.com`) | MX | **opened LatAm** |
-| 20 | **Tembici / Bike Itaú** (Rio, São Paulo) · **Mibici** (Guadalajara) | BR / MX | LatAm depth |
-| 21 | **Vélib' Métropole** (Paris) · **WienMobil Rad** (Vienna) · **Nextbike / Donkey Republic** (multi-city) | EU | EU shared mobility |
+| 20 | ~~**Bike Itaú** (Rio, São Paulo)~~ ✅ **DONE 2026-07-15** (`rio`, `saopaulo` — PBSC GBFS v3) + ~~**Santiago** (CL) · **Buenos Aires** (AR) · **Bogotá** (CO)~~ ✅ **DONE 2026-07-15**; Mibici (Guadalajara) + more still open | BR/CL/AR/CO | ✅ **deep LatAm** (5 cities, 4 countries) |
+| 21 | ~~**WienMobil Rad** (Vienna)~~ ✅ **DONE 2026-07-15** (`vienna`, nextbike v2) + ~~**Milan BikeMi** (IT)~~ ✅ + ~~**Barcelona Bicing** (ES)~~ ✅ **DONE 2026-07-15**; Vélib' Paris (Smovengo — 403 from here) + Nextbike/Donkey multi-city still open | EU | ✅ **+AT/IT/ES** (3 metros) |
 | 22 | ~~**Bike Share Toronto**~~ ✅ **DONE 2026-07-14** (`torontobike`, 1050 stations, PBSC) | CA | CA mobility (Bixi sibling) |
 | 23 | ~~**Bluebikes** (Boston) · **Indego** (Philadelphia) · **Metro Bike Share** (LA)~~ ✅ **DONE 2026-07-14** (+ madison + boulder BCycle); **Nice Ride** ⛔ (Lyft/host discovery failed here) | US | US depth (5 cities added) |
 
@@ -259,11 +265,11 @@ gate (re-run the funnel any time targets run low):
 | 49 | ~~**Arbeitnow**~~ ✅ **DONE 2026-07-14** (`arbeitnow`, 100 postings/GET) | listing lifecycle | ✅ | M–H | **opened the jobs & labour domain** (Axis-A white space) |
 | 50 | ~~**Hong Kong Observatory**~~ ✅ **DONE 2026-07-14** (`hkweather`, 9-day forecast + warnsum) | forecast-drift / warning | ✅ | M–H | **opened Asia** (weather + warnings) |
 | 51 | ~~**IPMA** (Portugal weather)~~ ✅ **DONE 2026-07-14** (`ipma`, day1 city forecast) | forecast-drift | ✅ | M–H | EU metno twin |
-| 52 | **Luchtmeetnet** (`api.luchtmeetnet.nl`, NL air quality / RIVM) | telemetry + forecast | ✅ robots 403-missing; paginated station JSON | M | official EU airquality twin (forecast + actual) |
-| 53 | **Energinet** (`api.energidataservice.dk`, DK energy) | price / telemetry | ✅ robots 404; live `Elspotprices` JSON | M | EU electricity depth (DK/DE price areas) |
+| 52 | ~~**Luchtmeetnet**~~ ✅ **DONE 2026-07-15** (`luchtmeetnet`; PM2.5 per RIVM station, paginated /stations + /measurements) | telemetry | ✅ robots 403-missing | M | **official NL air quality** (calibrated twin of citizen `airquality`) |
+| 53 | ~~**Energinet**~~ ✅ **DONE 2026-07-15** (`energinet`; used live **`DayAheadPrices`** — `Elspotprices` was **frozen at 2025-09-30**; zones DK1/DK2/DE/NO2/SE3/SE4) | price | ✅ robots 404 | low-med | **EU/Nordic electricity** (em6/aemo/nyiso twin) |
 | 54 | ~~**BC Ferries**~~ ✅ **DONE 2026-07-14** (`bcferries`; the whole board is at `/api/` root — the advertised `/api/v2/capacity/` was a dead end) | **scarcity** | ✅ robots 404 | **H** | **opened ferry sailing-capacity** (new transport sub-domain, CA) |
 | 55 | ~~**paralelo.bo** (Bolivia parallel USD/BOB)~~ ✅ **DONE 2026-07-14** (`paralelobo`; endpoint = `/api/rate`) | price / macro | ✅ | **H** | **un-rebuildable black-market FX**; opened LatAm macro |
-| — | **Luchtmeetnet** (NL air quality) · **Energinet** (DK energy) | telemetry / price | ✅ gated 2026-07-14, not yet built | M | EU env/energy depth (next public-apis picks) |
+| — | ~~Luchtmeetnet · Energinet~~ ✅ **both DONE 2026-07-15** (see #52/#53) — the public-apis survivor queue is now exhausted; **re-run the funnel (§3 2g / §4.5) to refill** | — | — | — |
 
 ### Tier 3 — speculative / low-value (park until a steer wants them)
 

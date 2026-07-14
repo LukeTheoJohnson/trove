@@ -26,11 +26,11 @@ DATA_DIR = os.path.join(ROOT, "data")
 # from it. Adding a source = drop its name into the right group below.
 SOURCE_GROUPS = {
     "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "epic", "steammarket"),
-    "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus", "aemo", "fuelwatch", "awattar", "carbonintensity", "nyiso", "francefuel"),
+    "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus", "aemo", "fuelwatch", "awattar", "carbonintensity", "nyiso", "francefuel", "energinet"),
     "currency & macro":                 ("frankfurter", "paralelobo"),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "attention & rank":                 ("hackernews", "appcharts", "melbped"),
-    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "northlandrivers", "westcoastrivers", "sacfs", "safeswim", "eafloods", "usgs", "wildfire", "airquality", "usgsquakes", "hkweather", "ipma"),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "northlandrivers", "westcoastrivers", "sacfs", "safeswim", "eafloods", "usgs", "wildfire", "airquality", "usgsquakes", "hkweather", "ipma", "luchtmeetnet"),
     "space":                            ("spaceweather", "sentry", "spacelaunch"),
     "aviation":                         ("chcflights", "zqnflights", "opensky", "adsblol"),
     "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport", "bcferries"),

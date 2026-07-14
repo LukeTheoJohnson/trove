@@ -46,6 +46,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | carbonintensity | `sources/carbonintensity.py` | GB region (1-17) | **ephemeral** (the per-region carbon-intensity *forecast as issued*; NG ESO archives realized intensity but not the as-issued regional forecast series) | med-high (forecast-drift class; carbon twin of the electricity-price set) |
 | nyiso      | `sources/nyiso.py`     | NY zone         | ephemeral 5-min spot *state* but **archived** (NYISO archives settlement) | low-med (US electricity; em6/aemo twin; keyless realtime_zone CSV; 2026-07-14 batch) |
 | francefuel | `sources/francefuel.py`| station id      | **ephemeral** (per-station French forecourt pump price, overwritten in place, never archived per-station) | **high** (EU fuel; spainfuel/petrolspy twin; keyless Opendatasoft prix-carburants v2; 2026-07-14 batch) |
+| energinet  | `sources/energinet.py` | bidding zone    | ephemeral 15-min zonal *state* but **archived** (Energinet archives settlement) | low-med (EU/Nordic electricity; em6/aemo/nyiso twin; keyless `DayAheadPrices` — the live replacement for the frozen `Elspotprices`; DK1/DK2/DE/NO2/SE3/SE4; 2026-07-15 batch) |
 
 ### currency & macro
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -95,6 +96,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | usgsquakes | `sources/usgsquakes.py`| USGS event id      | ephemeral as-reported *state* but **archived** (USGS keeps the authoritative catalogue + revisions) | low (global earthquakes; geonet twin, worldwide; 2026-07-14 batch) |
 | hkweather  | `sources/hkweather.py` | forecast date      | **ephemeral** (HK 9-day forecast *as issued* + its drift; HKO archives realized weather, not the forecast series) + live typhoon/rainstorm warnings | med-high (**opened Asia**; metno forecast-drift twin; public-apis harvest 2026-07-14) |
 | ipma       | `sources/ipma.py`      | IPMA globalIdLocal | **ephemeral** (Portugal next-day city forecast as issued; realized weather archived, forecast series not) | med-high (EU metno twin; public-apis harvest 2026-07-14) |
+| luchtmeetnet | `sources/luchtmeetnet.py` | NL station number | ephemeral PM reading but **archived** (RIVM keeps validated history; official calibrated monitors) | low-med (official NL/EU air quality; calibrated government twin of airquality; public-apis survivor; 2026-07-15 batch) |
 
 ### space
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -123,7 +125,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 ### shared mobility
 | source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
 |------------|-------------------------|-------------------|----------------------------------|-------------|
-| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). **16 systems**, each a config row (no new file): citibike/baywheels/capitalbikeshare/divvy/bluebikes/indego/metrobike/madison/boulder (US) + bixi/torontobike (CA) + **ecobici (MX — opened LatAm)** + oslobike/bergenbike/trondheimbike (NO) + warsawbike (PL). +11 added 2026-07-14 | **high** |
+| bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). **24 systems**, each a config row (no new file): citibike/baywheels/capitalbikeshare/divvy/bluebikes/indego/metrobike/madison/boulder (US) + bixi/torontobike (CA) + **ecobici (MX)** + oslobike/bergenbike/trondheimbike (NO) + warsawbike (PL) + **vienna (AT) + milan (IT) + barcelona (ES)** + **rio/saopaulo (BR) + santiago (CL) + baires (AR) + bogota (CO)** (LatAm depth). +11 on 2026-07-14; +8 on 2026-07-15 (added GBFS **v3.0** support: `data.feeds` shape + `num_vehicles_available` + localised station names) | **high** |
 | sgtaxi     | `sources/sgtaxi.py`    | sg (whole fleet) | **ephemeral** (Singapore's island-wide roaming-taxi count swinging with demand/weather; data.gov.sg serves the live count only, no per-minute history) | med-high (shared-mobility supply index; complements bikeshare's per-station view) |
 
 ### parking
@@ -319,6 +321,28 @@ set. (Next step if wanted: audit `scripts/poll.py`'s CADENCE/SWEEP config agains
   tests green; is_deal wiring proven live + offline. **Recon lesson reinforced:** BC Ferries' documented
   `/api/v2/capacity/` path was a dead end (returns `{sailings:null}`); the working feed was the bare
   `/api/` root — always probe the actual data path, don't trust the doc's advertised route.
+
+- **"10 new" batch (2026-07-15; +10 boards, +2 source files, +0 genres; 74 sources / 103 boards / 15
+  genres):** another width pass on the reusable classes + 2 new-file public-apis survivors. **Boards:**
+  8 GBFS cities (bikeshare 16→24: vienna (AT nextbike) + milan (IT urbansharing) + barcelona (ES) +
+  rio/saopaulo (BR) + santiago (CL) + baires (AR) + bogota (CO) — **6 new countries, deep LatAm**) +
+  **energinet** (EU/Nordic day-ahead electricity, em6/aemo/nyiso twin) + **luchtmeetnet** (official NL
+  air quality, calibrated twin of the citizen `airquality`). **Class upgrade:** the GBFS class learned
+  **v3.0** — LatAm/ES operators publish GBFS v3.0, which (a) drops the language layer (`data.feeds`
+  directly, not `data.<lang>.feeds`), (b) renames `num_bikes_available`→`num_vehicles_available`, (c)
+  makes station `name` a localised `[{text,language}]` list. Added a `_feed_urls` v3 branch +
+  `num_vehicles_available` fallback + a `_localized()` helper — vienna/milan stay v2, all clean, one
+  class serves both. **Gate records:** all keyless, robots-gated first — nextbike/urbansharing/
+  publicbikesystem.net hosts 404 (S3/missing class), `api.luchtmeetnet.nl` 403-missing,
+  `api.energidataservice.dk` 404. Discovery URLs pulled from the authoritative **MobilityData
+  `systems.csv`** registry (one fetch — the sanctioned way, not guessing hosts). **Liveness lesson:**
+  Energinet **froze `Elspotprices` at 2025-09-30** (a DESC sort returned 9-month-old rows as "newest")
+  → switched to the live **`DayAheadPrices`** (cols `TimeUTC`/`PriceArea`/`DayAheadPriceEUR`, 15-min,
+  zones DK1/DK2/DE/NO2/SE3/SE4); the day-ahead feed also carries *future* hours, so the client bounds
+  the query to the interval around **now** rather than a naive DESC (which would return tomorrow's
+  prices). Luchtmeetnet is paginated (station names ~5 pages + newest-hour PM2.5 ~6 pages = one bounded
+  burst, memoized — not armed on the poller). **Skipped:** Helsinki `hsl.fi` GBFS (404, path moved);
+  Asian GBFS (YouBike/HELLO CYCLING 404/403 — Asia shared-mobility still needs a fresh target).
 
 - **"20 new" width batch (2026-07-14, second drop of the day after bixi; +20 boards, +5 source files,
   +1 genre; 67 sources / 88 boards / 14 genres):** the biggest single batch — leaned hard on the

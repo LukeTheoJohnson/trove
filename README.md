@@ -53,8 +53,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Sources
 
-72 sources in fifteen genres (the same grouping `python trove.py` prints); several sources hoard
-multiple boards (bikeshare 16 GBFS systems, outages 5 utility networks, civic311 3 cities) for 93
+74 sources in fifteen genres (the same grouping `python trove.py` prints); several sources hoard
+multiple boards (bikeshare 24 GBFS systems, outages 5 utility networks, civic311 3 cities) for 103
 boards in total:
 
 ### games / media / collectibles
@@ -82,6 +82,7 @@ boards in total:
 | carbonintensity | GB region (1-17) | Great Britain grid carbon intensity forecast (gCO2/kWh) + generation mix, as-issued (drift); deal = index "very low"/"low" | keyless National Grid ESO Carbon Intensity API |
 | nyiso   | NY zone (WEST...)   | New York ISO real-time zonal electricity price (LBMP $/MWHr), 5-min; deal = at/below the all-zone avg (US twin of em6/aemo) | keyless NYISO realtime_zone CSV |
 | francefuel | station id       | per-station French forecourt fuel price (`--cc` = grade: gazole/sp95/sp98/e10/e85/gplc), overwritten in place; deal = below the national sample avg | keyless Opendatasoft prix-carburants v2 |
+| energinet | bidding zone (DK1/DK2/DE/NO2/SE3/SE4) | Nordic/DE day-ahead electricity price (EUR/MWh) per bidding zone; deal = at/below the all-zone avg or negative (EU twin of em6/aemo/nyiso) | keyless Energinet DayAheadPrices |
 
 ### currency & macro
 | source  | join key            | timeline value                         | API                          |
@@ -128,6 +129,7 @@ boards in total:
 | usgs    | USGS site number    | US river streamflow + gauge height at 5-15min telemetry (`--cc` = a US state); flood-onset rise (1.5x in 24h) | keyless USGS Water Services IV |
 | wildfire | IRWIN id           | US wildland fire incident lifecycle: acreage growth + containment % climb, then it's out and drops off the current layer; deal = active fire >=1000 acres and <50% contained | keyless NIFC/WFIGS ArcGIS Feature Service |
 | airquality | sensor id        | live citizen PM2.5/PM10 per air-quality sensor (`--cc` = a curated city); deal = PM2.5 >=25 ug/m3 (unhealthy) | keyless Sensor.Community API |
+| luchtmeetnet | NL station id   | official Netherlands PM2.5 per RIVM reference monitor; deal = PM2.5 >=25 ug/m3 (unhealthy); calibrated government twin of airquality | keyless Luchtmeetnet open API |
 | usgsquakes | USGS event id    | global earthquakes (magnitude + place + depth + felt/MMI/tsunami), as-reported then revised; deal = M>=4.5 or tsunami flag (global geonet twin) | keyless USGS FDSN event API |
 | hkweather | forecast date (YYYYMMDD) | Hong Kong 9-day forecast-drift (per-day max/min temp as issued) + live typhoon/rainstorm warnings; deal = max >=33C or a warning in force (metno twin, opens Asia) | keyless HK Observatory opendata |
 | ipma    | IPMA globalIdLocal  | Portugal next-day city forecast (max/min temp as issued + rain probability + weather type); deal = rain probability >=70% (metno twin, EU) | keyless IPMA open-data |
@@ -159,7 +161,7 @@ boards in total:
 ### shared mobility
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
-| bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes); `--cc` picks 1 of 16 systems across US/CA/MX/EU | keyless open GBFS station feed |
+| bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes); `--cc` picks 1 of 24 systems across US/CA/MX/EU/LatAm (GBFS v2 + v3) | keyless open GBFS station feed |
 | sgtaxi  | sg (whole fleet)    | Singapore roaming-taxi supply: the island-wide available-taxi count swinging with demand/weather; deal = below 2,000 (tight supply) | keyless data.gov.sg taxi-availability |
 
 ### parking

@@ -23,7 +23,7 @@ dry (<=2 bikes left) - grab one now / a rebalancing candidate. money() cosmetica
 centi-bike as dollars in the two core-hardcoded spots (5 bikes -> "$5.00"; geonet/appcharts
 precedent); the rich views show "5 bikes / 8 docks".
 
-`--cc` picks the system (default citibike; 16 systems across US/CA/MX/EU — see `SYSTEMS`). `search`
+`--cc` picks the system (default citibike; 24 systems across US/CA/MX/EU/LatAm — see `SYSTEMS`). `search`
 filters stations by name substring within the `--cc` system; `item`/`poll` read the system from the
 id itself, so a mixed-system watchlist stays coherent. The client resolves each system's official
 discovery document (resilient to host/path drift) and memoizes both feeds, so a whole poll of any
@@ -55,16 +55,44 @@ SYSTEMS = {
     "bergenbike":      "https://gbfs.urbansharing.com/bergenbysykkel.no/gbfs.json",     # Bergen (NO)
     "trondheimbike":   "https://gbfs.urbansharing.com/trondheimbysykkel.no/gbfs.json",  # Trondheim (NO)
     "warsawbike":      "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_zs/gbfs.json",  # Warsaw (PL, nextbike)
+    "vienna":          "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_wr/gbfs.json",  # Vienna WienMobil Rad (AT, nextbike)
+    "milan":           "https://gbfs.urbansharing.com/bikemi.com/gbfs.json",            # Milan BikeMi (IT, urbansharing)
+    "barcelona":       "https://barcelona.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",    # Barcelona Bicing (ES, GBFS v3)
+    "rio":             "https://riodejaneiro.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",  # Rio Bike Itau (BR, v3)
+    "saopaulo":        "https://saopaulo.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",      # Sao Paulo Bike Itau (BR, v3)
+    "santiago":        "https://santiago.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",      # Santiago Bike Itau (CL, v3)
+    "baires":          "https://buenosaires.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",   # Buenos Aires Ecobici (AR, v3)
+    "bogota":          "https://bogota.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",        # Bogota (CO, v3)
 }
 BIKES_LOW = 2   # <= this many bikes at a renting station = "running dry" (stockout risk)
 
 
 def _feed_urls(discovery):
-    """From a GBFS discovery doc, the station_information + station_status URLs (prefer English)."""
+    """The station_information + station_status URLs from a GBFS discovery doc.
+
+    Handles both GBFS v2.x (`data.<lang>.feeds`, prefer English else the first language)
+    and GBFS v3.0 (`data.feeds` directly - the language layer was removed in v3)."""
     data = (discovery or {}).get("data") or {}
-    lang = "en" if "en" in data else (next(iter(data), None))
-    feeds = {f.get("name"): f.get("url") for f in ((data.get(lang) or {}).get("feeds") or [])} if lang else {}
+    if isinstance(data.get("feeds"), list):          # GBFS v3.0: no per-language sub-object
+        feed_list = data["feeds"]
+    else:                                            # GBFS v2.x: data.<lang>.feeds
+        lang = "en" if "en" in data else next(iter(data), None)
+        feed_list = ((data.get(lang) or {}).get("feeds") or []) if lang else []
+    feeds = {f.get("name"): f.get("url") for f in feed_list}
     return feeds.get("station_information"), feeds.get("station_status")
+
+
+def _localized(v):
+    """A GBFS name/short_name: a plain string (v2) or a list of {text, language} (v3.0).
+
+    Returns the English text if present, else the first entry - so v3 station names
+    render as clean strings instead of the raw localized-object list."""
+    if isinstance(v, list):
+        if not v:
+            return ""
+        best = next((d for d in v if isinstance(d, dict) and d.get("language") == "en"), v[0])
+        return (best.get("text") if isinstance(best, dict) else str(best)) or ""
+    return v or ""
 
 
 def _merge(info_list, status_list):
@@ -84,13 +112,15 @@ def _merge(info_list, status_list):
 def _build(system, sid, m):
     """One merged station record -> (Item, Obs)."""
     bikes = m.get("num_bikes_available")
+    if bikes is None:
+        bikes = m.get("num_vehicles_available")   # GBFS v3.0 renamed num_bikes_available
     ebikes = m.get("num_ebikes_available")
     docks = m.get("num_docks_available")
-    name = safe(m.get("name") or m.get("short_name") or sid)
+    name = safe(_localized(m.get("name")) or _localized(m.get("short_name")) or sid)
     item = Item(f"{system}:{sid}", name=name,
                 subtitle=system, category=system,
                 extra={"system": system, "station_id": sid,
-                       "short_name": m.get("short_name") or "", "region_id": m.get("region_id") or "",
+                       "short_name": safe(_localized(m.get("short_name"))), "region_id": m.get("region_id") or "",
                        "capacity": m.get("capacity"), "lat": m.get("lat"), "lon": m.get("lon")})
     obs = Obs(price_cents=(bikes * 100 if isinstance(bikes, int) else None),
               qty=(docks if isinstance(docks, int) else None),
@@ -130,7 +160,7 @@ class _Client:
 class BikeShareSource(Source):
     name = "bikeshare"
     id_label = "SYSTEM:STATION"
-    cc_default = "citibike"      # GBFS system; --cc <slug> (16 systems in SYSTEMS)
+    cc_default = "citibike"      # GBFS system; --cc <slug> (24 systems in SYSTEMS)
     deal_label = "stockout risk"  # a renting station running dry (<= BIKES_LOW bikes left)
     search_limit_default = 25
     search_header = f"{'BIKES':>5}  {'DOCKS':>5}  {'CAP':>4}  STATION"
