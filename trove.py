@@ -27,18 +27,19 @@ DATA_DIR = os.path.join(ROOT, "data")
 SOURCE_GROUPS = {
     "games / media / collectibles":     ("steam", "discogs", "itunes", "scryfall", "pokemontcg", "ygoprodeck", "epic", "steammarket"),
     "fuel & electricity":               ("spainfuel", "petrolspy", "em6", "octopus", "aemo", "fuelwatch", "awattar", "carbonintensity", "nyiso", "francefuel"),
-    "currency & macro":                 ("frankfurter",),
+    "currency & macro":                 ("frankfurter", "paralelobo"),
     "deals, fares & listings":          ("grabone", "grabaseat", "bookme", "turners", "eventcinemas", "reverb"),
     "attention & rank":                 ("hackernews", "appcharts", "melbped"),
-    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "northlandrivers", "westcoastrivers", "sacfs", "safeswim", "eafloods", "usgs", "wildfire", "airquality", "usgsquakes"),
+    "weather, environment & geohazard": ("geonet", "metno", "volcano", "nzski", "gwrivers", "avalanche", "mdcrivers", "nswrfs", "beachwatch", "vicemergency", "horizonsrivers", "northlandrivers", "westcoastrivers", "sacfs", "safeswim", "eafloods", "usgs", "wildfire", "airquality", "usgsquakes", "hkweather", "ipma"),
     "space":                            ("spaceweather", "sentry", "spacelaunch"),
     "aviation":                         ("chcflights", "zqnflights", "opensky", "adsblol"),
-    "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport"),
+    "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport", "bcferries"),
     "shared mobility":                  ("bikeshare", "sgtaxi"),
     "parking":                          ("chcparking", "sgcarpark"),
     "utilities & outages":              ("outages",),
     "marine & coastal":                 ("noaatides", "ndbc"),
     "civic & government":               ("civic311",),
+    "jobs & labour":                    ("arbeitnow",),
 }
 SOURCES = tuple(name for group in SOURCE_GROUPS.values() for name in group)
 

@@ -53,8 +53,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Sources
 
-67 sources in fourteen genres (the same grouping `python trove.py` prints); several sources hoard
-multiple boards (bikeshare 16 GBFS systems, outages 5 utility networks, civic311 3 cities) for 88
+72 sources in fifteen genres (the same grouping `python trove.py` prints); several sources hoard
+multiple boards (bikeshare 16 GBFS systems, outages 5 utility networks, civic311 3 cities) for 93
 boards in total:
 
 ### games / media / collectibles
@@ -87,6 +87,7 @@ boards in total:
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | frankfurter | BASE:QUOTE (e.g. NZD:USD) | ECB daily FX fixing — one `item` call seeds the full daily series since 1999 into the obs log; deal = base at/above the 90th percentile of its trailing year (a strong moment to convert) | keyless open-source Frankfurter/ECB API |
+| paralelobo | usd (BOB pair)      | Bolivia **parallel-market** USD/BOB rate (P2P aggregate) — un-rebuildable black-market series (vs the ~6.96 official peg); deal = >=40% premium over the peg | keyless paralelo.bo /api/rate |
 
 ### deals, fares & listings
 | source  | join key            | timeline value                         | API                          |
@@ -128,6 +129,8 @@ boards in total:
 | wildfire | IRWIN id           | US wildland fire incident lifecycle: acreage growth + containment % climb, then it's out and drops off the current layer; deal = active fire >=1000 acres and <50% contained | keyless NIFC/WFIGS ArcGIS Feature Service |
 | airquality | sensor id        | live citizen PM2.5/PM10 per air-quality sensor (`--cc` = a curated city); deal = PM2.5 >=25 ug/m3 (unhealthy) | keyless Sensor.Community API |
 | usgsquakes | USGS event id    | global earthquakes (magnitude + place + depth + felt/MMI/tsunami), as-reported then revised; deal = M>=4.5 or tsunami flag (global geonet twin) | keyless USGS FDSN event API |
+| hkweather | forecast date (YYYYMMDD) | Hong Kong 9-day forecast-drift (per-day max/min temp as issued) + live typhoon/rainstorm warnings; deal = max >=33C or a warning in force (metno twin, opens Asia) | keyless HK Observatory opendata |
+| ipma    | IPMA globalIdLocal  | Portugal next-day city forecast (max/min temp as issued + rain probability + weather type); deal = rain probability >=70% (metno twin, EU) | keyless IPMA open-data |
 
 ### space
 | source  | join key            | timeline value                         | API                          |
@@ -151,6 +154,7 @@ boards in total:
 | tfl     | line id             | London Underground/DLR/Overground/Elizabeth line status ordinal (Good Service -> Minor/Severe Delays -> Part Suspended) drifting through the day; deal = any non-Good-Service | keyless TfL Unified API |
 | mbta    | alert id            | Boston MBTA service alerts: severity (0-10) + effect lifecycle, then the alert clears; deal = a serious effect (suspension/shuttle) or severity>=7 | keyless MBTA V3 JSON:API |
 | swisstransport | station\|line\|to\|schedTs | Swiss rail/tram departure delay-drift in the minutes before it leaves, then it's gone; deal = running >=3 min late | keyless transport.opendata.ch stationboard |
+| bcferries | DEP-DEST:time       | BC Ferries sailing capacity filling (fill % overall + car deck) from on-sale to departure, un-rebuildable; deal = non-cancelled sailing >=80% full (book now) | keyless bcferriesapi.ca |
 
 ### shared mobility
 | source  | join key            | timeline value                         | API                          |
@@ -179,6 +183,11 @@ boards in total:
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | civic311 | city:request id    | municipal 311 service-request backlog (`--cc` = city: nyc/chicago/sf): a request's age-in-queue + Open->Closed lifecycle (oldest-open board = the current backlog); deal "stale" = still open after 7+ days | keyless city Socrata 311 datasets |
+
+### jobs & labour
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| arbeitnow | job slug          | EU/remote tech job-board listing lifecycle: a posting appears, sits on the board, then vanishes when filled/expired (a time-to-fill proxy); deal "fresh" = posted in the last 48h | keyless Arbeitnow job-board-api |
 
 ## Adding a source (~50 lines)
 

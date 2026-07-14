@@ -14,7 +14,10 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-14 (**67 sources / 88 boards / 14 genres** after the "20 new" width batch — 20
+_Last mapped: 2026-07-14 (**72 sources / 93 boards / 15 genres**. Latest: the `public-apis` funnel
+harvest (§3 2g) built **5 survivors** — `arbeitnow` (**opened jobs & labour domain**), `hkweather`
+(**opened Asia**), `ipma` (EU weather), `bcferries` (ferry scarcity, CA), `paralelobo` (un-rebuildable
+Bolivia parallel USD/BOB, LatAm macro). Earlier the "20 new" width batch — 20
 boards in one pass: 11 GBFS cities (bikeshare 5→16, **ecobici opens LatAm**), 2 outages networks
 (westernpower WA + bchydro BC → 5 networks), and 5 new-file sources: **nyiso** (US electricity),
 **francefuel** (EU fuel), **adsblol** (opensky twin), **usgsquakes** (global), **civic311** (nyc/
@@ -38,28 +41,29 @@ re-verify a host's robots before building; postures drift._
 trove's coverage is best read on **three axes**: domain (genre), signal *mechanic* (the shape of the
 ephemeral thing being hoarded), and geography. A gap on *any* axis is a drop target.
 
-### Axis A — domain / genre (14)
+### Axis A — domain / genre (15)
 
 | genre | sources | depth |
 |-------|---------|-------|
 | games / media / collectibles | steam, discogs, itunes, scryfall, pokemontcg, ygoprodeck, epic, steammarket | deep |
 | fuel & electricity | spainfuel, petrolspy, em6, octopus, aemo, fuelwatch, awattar, carbonintensity, nyiso, francefuel | deep (10; +US electricity + EU fuel 2026-07-14) |
-| currency & macro | frankfurter | **thin (1)** |
+| currency & macro | frankfurter, paralelobo *(Bolivia parallel USD)* | thin (2; +LatAm parallel FX 2026-07-14) |
 | deals, fares & listings | grabone, grabaseat, bookme, turners, eventcinemas, reverb | good |
 | attention & rank | hackernews, appcharts, melbped | medium |
-| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality, usgsquakes | deepest (20; +global quakes 2026-07-14) |
+| weather, environment & geohazard | geonet, metno, volcano, nzski, gwrivers, avalanche, mdcrivers, horizonsrivers, northlandrivers, westcoastrivers, nswrfs, vicemergency, sacfs, beachwatch, safeswim, eafloods, usgs, wildfire, airquality, usgsquakes, hkweather, ipma | deepest (22; +HK & Portugal forecast 2026-07-14) |
 | space | spaceweather, sentry, spacelaunch | medium |
 | aviation | chcflights, zqnflights, opensky, adsblol | medium |
-| roads & transport | nzroads, tfl, mbta, swisstransport | medium |
+| roads & transport | nzroads, tfl, mbta, swisstransport, bcferries *(ferry scarcity)* | medium (+ferries 2026-07-14) |
 | shared mobility | bikeshare *(16 GBFS systems US/CA/MX/EU)*, sgtaxi | good (2026-07-14: 5→16 systems) |
 | parking | chcparking, sgcarpark | thin |
 | **utilities & outages** | outages *(powercor VIC + energex SE QLD + westernpower WA + mbhydro CA + bchydro BC as NETWORKS rows)* | **1 driver, 5 networks (AU×3 + CA×2)** |
 | **marine & coastal** | noaatides, ndbc | (2) |
 | **civic & government** | civic311 *(nyc + chicago + sf 311 backlogs)* | **new (1) — opened 2026-07-14 (queue mechanic)** |
+| **jobs & labour** | arbeitnow *(EU/remote job board)* | **new (1) — opened 2026-07-14 (listing lifecycle)** |
 
 **Domain white space (no coverage):** health / hospitals (ED wait times, capacity) · real estate &
-rentals (listing lifecycle) · **jobs / labour market** (✅ Arbeitnow harvested 2026-07-14, §3 2g — first
-buildable candidate) · streaming & content availability (leaving/arriving)
+rentals (listing lifecycle) · ~~jobs / labour market~~ ✅ **opened 2026-07-14** (`arbeitnow`, §3 2g) ·
+streaming & content availability (leaving/arriving)
 · marine / maritime (AIS vessel tracking, port congestion — coastal tides + offshore buoys now covered)
 · sports (scores, odds-drift — gambling, off-brand for a public repo) · agriculture / commodities (dairy,
 livestock) · telecom / internet status
@@ -99,8 +103,8 @@ dining / reservation availability.
 | US | **much deeper (2026-07-14)** | mbta, opensky/adsblol bbox, bikeshare (9 US cities), **nyiso (electricity)**, usgsquakes (global), noaatides/ndbc/usgs, **civic311 (nyc/chicago/sf)** — still room (USGS/NOAA/Socrata/data.gov wide open) |
 | SG | narrow | taxi, carpark |
 | CA | **(3 genres)** | mbhydro + bchydro (outages), bixi + torontobike (bikeshare), 2026-07-14; huge open-data surface still largely untouched |
-| LatAm | **new (1) — opened 2026-07-14** | ecobici (Mexico City bike-share); Tembici/Mibici + more are named GBFS reskins (§3 2b) |
-| Asia | **🟡 candidate (2026-07-14)** | HK Observatory (weather+warnings) harvested from public-apis (§3 2g); wider Asia + Japan still untouched |
+| LatAm | **new (2) — opened 2026-07-14** | ecobici (Mexico City bike-share) + paralelobo (Bolivia parallel-market USD macro); Tembici/Mibici + more are named GBFS reskins (§3 2b) |
+| Asia | **new (1) — opened 2026-07-14** | hkweather (HK Observatory forecast + warnings); wider Asia + Japan still untouched |
 | rest of world | **none** | Japan, wider Asia, Africa untouched |
 
 ---
@@ -252,13 +256,14 @@ gate (re-run the funnel any time targets run low):
 
 | # | target | mechanic | gate (2026-07-14) | hoard | fills |
 |---|--------|----------|-------------------|-------|-------|
-| 49 | **Arbeitnow** (`arbeitnow.com/api/job-board-api`, EU/remote jobs) | listing lifecycle | ✅ robots allows the api path; live job JSON | M–H | **opens the jobs / labour-market domain** (Axis-A white space) |
-| 50 | **Hong Kong Observatory** (`data.weather.gov.hk/weatherAPI/opendata`) | forecast-drift / warning | ✅ robots fences only `/aviat/,/cis/…`; live rainfall+warning JSON | M–H | **opens Asia** (weather + warnings) |
-| 51 | **IPMA** (`api.ipma.pt/open-data`, Portugal weather) | forecast-drift | ✅ robots 404; live forecast JSON | M–H | EU metno twin |
+| 49 | ~~**Arbeitnow**~~ ✅ **DONE 2026-07-14** (`arbeitnow`, 100 postings/GET) | listing lifecycle | ✅ | M–H | **opened the jobs & labour domain** (Axis-A white space) |
+| 50 | ~~**Hong Kong Observatory**~~ ✅ **DONE 2026-07-14** (`hkweather`, 9-day forecast + warnsum) | forecast-drift / warning | ✅ | M–H | **opened Asia** (weather + warnings) |
+| 51 | ~~**IPMA** (Portugal weather)~~ ✅ **DONE 2026-07-14** (`ipma`, day1 city forecast) | forecast-drift | ✅ | M–H | EU metno twin |
 | 52 | **Luchtmeetnet** (`api.luchtmeetnet.nl`, NL air quality / RIVM) | telemetry + forecast | ✅ robots 403-missing; paginated station JSON | M | official EU airquality twin (forecast + actual) |
 | 53 | **Energinet** (`api.energidataservice.dk`, DK energy) | price / telemetry | ✅ robots 404; live `Elspotprices` JSON | M | EU electricity depth (DK/DE price areas) |
-| 54 | **BC Ferries** (`bcferriesapi.ca`) | **scarcity** | ✅ robots 404; `/api/v2/capacity/` live but needs a terminal-pair param — one recon pass | **H** | **sailing-capacity filling** (new ferry transport sub-domain, CA) |
-| 55 | **paralelo.bo** (Bolivia parallel-market USD/BOB) | price / macro | 🟡 robots fences only `/api/admin/`, but `/api` serves the Next.js app — the JSON endpoint needs a bundle-grep | **H** | **un-rebuildable black-market FX** (no one archives the parallel-rate series); opens LatAm macro |
+| 54 | ~~**BC Ferries**~~ ✅ **DONE 2026-07-14** (`bcferries`; the whole board is at `/api/` root — the advertised `/api/v2/capacity/` was a dead end) | **scarcity** | ✅ robots 404 | **H** | **opened ferry sailing-capacity** (new transport sub-domain, CA) |
+| 55 | ~~**paralelo.bo** (Bolivia parallel USD/BOB)~~ ✅ **DONE 2026-07-14** (`paralelobo`; endpoint = `/api/rate`) | price / macro | ✅ | **H** | **un-rebuildable black-market FX**; opened LatAm macro |
+| — | **Luchtmeetnet** (NL air quality) · **Energinet** (DK energy) | telemetry / price | ✅ gated 2026-07-14, not yet built | M | EU env/energy depth (next public-apis picks) |
 
 ### Tier 3 — speculative / low-value (park until a steer wants them)
 

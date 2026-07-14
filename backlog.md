@@ -51,6 +51,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | frankfurter | `sources/frankfurter.py` | BASE:QUOTE (e.g. NZD:USD) | archived (ECB reference rates are a permanent public record; the whole series re-downloads in one GET) | low (PoC) — the draw is the **instant-depth ingestion capability** (`Obs.history` backfill, built for this source) + the daily buy-USD percentile signal |
+| paralelobo | `sources/paralelobo.py` | usd (BOB pair) | **ephemeral** (Bolivia's parallel-market USD/BOB rate from P2P sources; unlike official FX, **nobody archives the parallel series** — the snapshot is the only record) | **high** (un-rebuildable black-market FX; opens LatAm macro + a novel signal; deal = ≥40% premium over the 6.96 peg; public-apis harvest 2026-07-14) |
 
 ### deals, fares & listings
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -92,6 +93,8 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | wildfire   | `sources/wildfire.py`  | IrwinID            | **ephemeral** (a US wildfire's acreage-growth + containment-% lifecycle, then it's out and drops off the *current* WFIGS layer; no queryable per-incident growth history) | **high** (reused the ArcGIS FS class for a new hazard; US geography; 2026-07-07 batch) |
 | airquality | `sources/airquality.py`| sensor id          | ephemeral PM reading but **archived** (Sensor.Community keeps its own history; noisy citizen sensors) | low-med (opened the air-quality domain; global; 2026-07-07 batch) |
 | usgsquakes | `sources/usgsquakes.py`| USGS event id      | ephemeral as-reported *state* but **archived** (USGS keeps the authoritative catalogue + revisions) | low (global earthquakes; geonet twin, worldwide; 2026-07-14 batch) |
+| hkweather  | `sources/hkweather.py` | forecast date      | **ephemeral** (HK 9-day forecast *as issued* + its drift; HKO archives realized weather, not the forecast series) + live typhoon/rainstorm warnings | med-high (**opened Asia**; metno forecast-drift twin; public-apis harvest 2026-07-14) |
+| ipma       | `sources/ipma.py`      | IPMA globalIdLocal | **ephemeral** (Portugal next-day city forecast as issued; realized weather archived, forecast series not) | med-high (EU metno twin; public-apis harvest 2026-07-14) |
 
 ### space
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -115,6 +118,7 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | tfl        | `sources/tfl.py`       | line id       | **ephemeral** (each London line's status ordinal flipping Good->Minor/Severe Delays->Part Suspended through the day; TfL serves current state only, no queryable per-line status history) | **high** (transit-status drift; London) |
 | mbta       | `sources/mbta.py`      | alert id      | **ephemeral** (a Boston MBTA service alert's severity/effect lifecycle then it clears; only the current set is served) | med-high (transit alerts; twin mechanic to tfl) |
 | swisstransport | `sources/swisstransport.py` | station\|line\|to\|schedTs | **ephemeral** (a Swiss rail/tram departure's delay drift in the minutes before it leaves, then it's gone; only the live board is served) | med-high (rail delay-drift; twin of chc/zqnflights) |
+| bcferries  | `sources/bcferries.py` | DEP-DEST:time | **ephemeral** (a BC Ferries sailing's fill % from on-sale to departure — the capacity fills to 100% then it sails; no public archive of the per-sailing fill curve) | **high** (ferry scarcity, eventcinemas/parking family; CA; public-apis harvest 2026-07-14) |
 
 ### shared mobility
 | source     | `sources/…`             | join key          | ephemeral / archived elsewhere? | hoard value |
@@ -137,6 +141,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|
 | civic311   | `sources/civic311.py`  | city:request id | **ephemeral** (a 311 request's age-in-queue + Open→Closed lifecycle; the city serves current state, no public archive keeps the wait-in-queue trajectory) | med-high (**opened the civic & government domain + the queue/wait-time mechanic** trove lacked; 3 US cities nyc/chicago/sf as config rows + Socrata field adapters; 2026-07-14 batch) |
+
+### jobs & labour
+| source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|------------|----------------------------------|-------------|
+| arbeitnow  | `sources/arbeitnow.py` | job slug   | **ephemeral** (an EU/remote tech posting's appear→sit→vanish lifecycle + time-on-board; Arbeitnow serves only the current window, no public archive of when a role was posted / how long it stayed open) | med-high (**opened the jobs & labour domain** — a ROADMAP Axis-A white space; listing-lifecycle; public-apis harvest 2026-07-14) |
 
 ### marine & coastal
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
@@ -258,6 +267,26 @@ high on this column.
   `/search` disallow.)
 
 ## Notes
+
+- **public-apis funnel harvest — 5 survivors built (2026-07-14, "build the 5 strongest survivors";
+  67→72 sources, 88→93 boards, +1 genre):** the buildable survivors from the `public-apis` funnel mine
+  (ROADMAP §3 2g). All keyless, robots-gated, recon'd directly (batched curl). **`arbeitnow`** (`www.
+  arbeitnow.com/api/job-board-api`, robots allows the api path) — **opened the jobs & labour domain**
+  (Axis-A white space); listing-lifecycle (slug appears→vanishes), price_cents=age-hours, deal "fresh"
+  =≤48h; 100 postings/GET. **`paralelobo`** (`paralelo.bo/api/rate`, robots fences only /api/admin) —
+  **un-rebuildable Bolivia parallel USD/BOB** (P2P aggregate; nobody archives the black-market series,
+  unlike official FX); price_cents=median×100, deal "premium"=≥1.40× the 6.96 official peg (fired at
+  build: 10.53 = 1.51×, +51%). **`bcferries`** (`bcferriesapi.ca/api/` returns the whole nested board
+  dep→dest→sailings; the `/api/v2/capacity/` path is broken/empty — use `/api/` root) — **ferry
+  scarcity**; price_cents=fill%, deal "fullrisk"=non-cancelled ≥80% (274 sailings, TSA→Swartz Bay 100%
+  at build). **`hkweather`** (`data.weather.gov.hk/weatherAPI/opendata`, robots fences only /aviat//cis/)
+  — **opened Asia**; 9-day forecast-drift (fnd) + live warnings (warnsum, empty when quiet); price_cents
+  =max-temp×100, deal "hot"=≥33C or any warning. **`ipma`** (`api.ipma.pt/open-data`, robots 404) — EU
+  metno twin; next-day (day1) city forecast, price_cents=tMax×100, deal "rain"=precip prob ≥70%; names
+  from the memoized distrits-islands list, weather types from a compact id→text map. All 156 offline
+  tests green; is_deal wiring proven live + offline. **Recon lesson reinforced:** BC Ferries' documented
+  `/api/v2/capacity/` path was a dead end (returns `{sailings:null}`); the working feed was the bare
+  `/api/` root — always probe the actual data path, don't trust the doc's advertised route.
 
 - **"20 new" width batch (2026-07-14, second drop of the day after bixi; +20 boards, +5 source files,
   +1 genre; 67 sources / 88 boards / 14 genres):** the biggest single batch — leaned hard on the
