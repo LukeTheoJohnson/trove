@@ -266,6 +266,38 @@ high on this column.
   playbook note that tagged PB Tech as a page-parse trove candidate - that predated reading the
   `/search` disallow.)
 
+## Ephemerality audit (2026-07-14)
+
+The thesis filter is **ephemerality, not keyless**: the moat is the *un-rebuildable* time-series. Audited
+all 72 sources against it — **15 (~21%) do NOT match**: their history is downloadable elsewhere, so
+capturing it ourselves is redundant (PoC / capability-flex / genre-completer, not moat). Grouped by why:
+
+- **TCG / media price — third-party archived (4):** `steam` (SteamDB), `scryfall` (MTGGoldfish),
+  `pokemontcg` (prices.pokemontcg.io), `steammarket` (third parties archive medians).
+- **Electricity / energy — the operator archives settlement (3):** `octopus` (the Agile endpoint serves
+  the full realized half-hourly history), `awattar` (full realized hourly history), `nyiso` (NYISO
+  archives settlement). The realized series is re-downloadable from the same API.
+- **FX — permanent public record (1):** `frankfurter` (ECB reference rates are a permanent archive; the
+  whole series re-downloads in one GET). *(Its opposite is `paralelobo` — the **parallel** rate, which
+  nobody archives = genuinely un-rebuildable = high.)*
+- **Geohazard / telemetry — the agency keeps the authoritative record (7):** `geonet` (GeoNet catalogue
+  + /quake/history), `volcano` (VAL bulletins), `usgs` (USGS full water record), `usgsquakes` (USGS
+  catalogue), `airquality` (Sensor.Community keeps its history), `noaatides` (NOAA), `ndbc` (NDBC files).
+
+**These aren't worthless** — they prove the framework's generality (~50 lines each), complete a genre
+across hemispheres (`octopus` = UK retail twin of `em6`; `nyiso` = US electricity), or were capability
+flexes (`frankfurter`/`awattar` built the `Obs.history` deep-backfill channel; `geonet` = a DS flex).
+The docs already tag every one honestly (low/PoC).
+
+**The actionable conclusion — ephemerality gates the *poll* decision, not the *existence* decision.**
+Building a PoC source is cheap and demonstrates "I can build a tool for anything." But only
+**un-rebuildable** sources earn a **scheduled `poll`/SWEEP slot** — for the archived 15, continuous
+capture is pure redundancy (backfill anytime), and polling is where third-party cost/rudeness accrues.
+So: keep all 15 (breadth + capability), but keep them **off the poller**; reserve `CADENCE_MIN`/`SWEEP`
+for the high-hoard un-rebuildable set (discogs, the fuel/forecast/outage/scarcity/lifecycle sources).
+No pruning recommended unless Luke wants a lean moat-only build — in which case this list *is* the prune
+set. (Next step if wanted: audit `scripts/poll.py`'s CADENCE/SWEEP config against this list.)
+
 ## Notes
 
 - **public-apis funnel harvest — 5 survivors built (2026-07-14, "build the 5 strongest survivors";
