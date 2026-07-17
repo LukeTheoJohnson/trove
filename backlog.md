@@ -128,6 +128,11 @@ Grouped by genre (same sections as the `--help` listing and the data dictionary)
 | bikeshare  | `sources/bikeshare.py`  | system:station_id | **ephemeral** (a dock-based station's live bikes/docks-free count oscillating through the day — the fill/empty rebalancing cycle; GBFS serves current state only and no public archive keeps the per-station availability series). **24 systems**, each a config row (no new file): citibike/baywheels/capitalbikeshare/divvy/bluebikes/indego/metrobike/madison/boulder (US) + bixi/torontobike (CA) + **ecobici (MX)** + oslobike/bergenbike/trondheimbike (NO) + warsawbike (PL) + **vienna (AT) + milan (IT) + barcelona (ES)** + **rio/saopaulo (BR) + santiago (CL) + baires (AR) + bogota (CO)** (LatAm depth). +11 on 2026-07-14; +8 on 2026-07-15 (added GBFS **v3.0** support: `data.feeds` shape + `num_vehicles_available` + localised station names) | **high** |
 | sgtaxi     | `sources/sgtaxi.py`    | sg (whole fleet) | **ephemeral** (Singapore's island-wide roaming-taxi count swinging with demand/weather; data.gov.sg serves the live count only, no per-minute history) | med-high (shared-mobility supply index; complements bikeshare's per-station view) |
 
+### sports & recreation
+| source     | `sources/…`            | join key       | ephemeral / archived elsewhere? | hoard value |
+|------------|------------------------|----------------|----------------------------------|-------------|
+| squiggle   | `sources/squiggle.py`  | year:round:id  | **ephemeral** (AFL game score progression — completion % + score updates as games play to final; Squiggle serves current round state only, no archive of per-game minute-by-minute progression). Opens **sports domain + game-status mechanic** (Australian Football League, keyless Squiggle API). Built 2026-07-16 from public-apis funnel re-run. | **high** (un-rebuildable per-game score trajectory; new domain & mechanic) |
+
 ### parking
 | source     | `sources/…`            | join key   | ephemeral / archived elsewhere? | hoard value |
 |------------|------------------------|------------|----------------------------------|-------------|

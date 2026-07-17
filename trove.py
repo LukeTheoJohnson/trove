@@ -35,6 +35,7 @@ SOURCE_GROUPS = {
     "aviation":                         ("chcflights", "zqnflights", "opensky", "adsblol"),
     "roads & transport":                ("nzroads", "tfl", "mbta", "swisstransport", "bcferries"),
     "shared mobility":                  ("bikeshare", "sgtaxi"),
+    "sports & recreation":              ("squiggle",),
     "parking":                          ("chcparking", "sgcarpark"),
     "utilities & outages":              ("outages",),
     "marine & coastal":                 ("noaatides", "ndbc"),

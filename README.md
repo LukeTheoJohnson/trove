@@ -53,8 +53,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Sources
 
-74 sources in fifteen genres (the same grouping `python trove.py` prints); several sources hoard
-multiple boards (bikeshare 24 GBFS systems, outages 5 utility networks, civic311 3 cities) for 103
+75 sources in sixteen genres (the same grouping `python trove.py` prints); several sources hoard
+multiple boards (bikeshare 24 GBFS systems, outages 5 utility networks, civic311 3 cities) for 104
 boards in total:
 
 ### games / media / collectibles
@@ -163,6 +163,11 @@ boards in total:
 |---------|---------------------|----------------------------------------|------------------------------|
 | bikeshare | system:station_id | dock-based bike-share station availability: bikes/docks free oscillating through the day (the fill/empty cycle), never archived per-station; deal = a renting station running dry (<=2 bikes); `--cc` picks 1 of 24 systems across US/CA/MX/EU/LatAm (GBFS v2 + v3) | keyless open GBFS station feed |
 | sgtaxi  | sg (whole fleet)    | Singapore roaming-taxi supply: the island-wide available-taxi count swinging with demand/weather; deal = below 2,000 (tight supply) | keyless data.gov.sg taxi-availability |
+
+### sports & recreation
+| source  | join key            | timeline value                         | API                          |
+|---------|---------------------|----------------------------------------|------------------------------|
+| squiggle | year:round:id      | AFL (Australian Football League) game score progression: completion % (0-100) + score updates as games play to final; deal = game completed or score changed; `--cc` = a team name filter | keyless Squiggle AFL API |
 
 ### parking
 | source  | join key            | timeline value                         | API                          |
