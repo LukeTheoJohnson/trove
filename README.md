@@ -1,6 +1,6 @@
 # trove
 
-Search, watch, and poll data over time for price drops and source-specific signals. Every fetch writes a timestamped row to a local SQLite cache.
+Search, watch, and poll data over time for source data signals. Every fetch writes a timestamped row to a local SQLite cache.
 The cache is the product: trove is a hoarding engine for proprietary, un-rebuildable time-series, and `export` hands the whole thing
 to your other tools as CSV (schema in [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md)).
 
