@@ -29,7 +29,7 @@ CADENCE_MIN = {
     "gwrivers": 60,   # river gauges update ~15-60 min
     "metno": 180,     # weather forecast drifts over hours
     "nzroads": 30,    # national highway disruption board; full-board sweep (see SWEEP)
-    "outages": 30,    # outage lifecycles move in minutes; both networks swept (see SWEEP)
+    "outages": 30,    # outage lifecycles move in minutes; all 5 networks swept (see SWEEP)
     "wildfire": 360,  # acreage/containment revisions land ~daily; 4 board snapshots/day
 }
 GAP_S = 20            # spacing between sources that fire in the same wake
@@ -41,8 +41,11 @@ GAP_S = 20            # spacing between sources that fire in the same wake
 # so a multi-network source sweeps every board in one wake.
 SWEEP = {
     "nzroads":  [["search", "", "--limit", "5"]],   # log all ~110 events; show top-severity 5 in the log
-    "outages":  [["search", "", "--limit", "3"],    # powercor (default network)
-                 ["--cc", "mbhydro", "search", "", "--limit", "3"]],
+    "outages":  [["search", "", "--limit", "3"],                        # powercor VIC (default network)
+                 ["--cc", "energex", "search", "", "--limit", "3"],      # SE QLD
+                 ["--cc", "westernpower", "search", "", "--limit", "3"],  # WA
+                 ["--cc", "mbhydro", "search", "", "--limit", "3"],      # Manitoba
+                 ["--cc", "bchydro", "search", "", "--limit", "3"]],     # British Columbia
     "wildfire": [["search", "", "--limit", "3"]],   # ~600-incident US board; log all, show top 3
 }
 

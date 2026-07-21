@@ -23,6 +23,15 @@ def _load_cli():
     return mod
 
 
+def _load_poll():
+    """Load scripts/poll.py by path - it's a scheduler script, not an importable package member."""
+    spec = importlib.util.spec_from_file_location(
+        "trove_poll", os.path.join(ROOT, "scripts", "poll.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 _CLI = _load_cli()
 SOURCES = _CLI.SOURCES
 SOURCE_GROUPS = _CLI.SOURCE_GROUPS
@@ -48,6 +57,20 @@ def test_source_well_formed(name):
     assert s.name == name                      # SOURCE.name matches its module/registration
     assert s.id_label and s.deal_label
     assert s.poll_spacing() == 0.5             # the centralized default; no driver overrides it
+
+
+def test_sweep_cc_codes_are_valid_networks():
+    """Every `--cc <code>` in poll.py's SWEEP must name a real network for that source, so a typo'd
+    code fails here instead of silently sweeping the wrong (or no) board on the next scheduled wake."""
+    poll = _load_poll()
+    for src, runs in poll.SWEEP.items():
+        networks = getattr(importlib.import_module(f"sources.{src}"), "NETWORKS", None)
+        for run in runs:
+            for i, tok in enumerate(run):
+                if tok == "--cc":
+                    code = run[i + 1]
+                    assert networks is not None, f"{src} SWEEP uses --cc but the source has no NETWORKS"
+                    assert code in networks, f"{src} SWEEP --cc {code!r} is not a registered network"
 
 
 @pytest.mark.parametrize("name", SOURCES)
