@@ -14,7 +14,17 @@ The filter is unchanged (`backlog.md`): **ephemerality, not keyless** — hoard 
 skip commodity data whose history is already downloadable. Gate order unchanged: **robots.txt first,
 then sanctioned-first**.
 
-_Last mapped: 2026-07-15 (**74 sources / 103 boards / 15 genres**. Latest: the **"10 new" batch** —
+_Last mapped: 2026-07-21 (**100 sources / 129 boards / 16 genres**. Latest: the **100-source push**
+(2026-07-21) — a `/goal`-driven +25 batch to reach 100 registered sources, live-reconned direct and
+gated ✅-clean: 4 electricity (**aeso** Alberta / **elexon** GB wholesale / **ree** Spain / **elia**
+Belgium), 2 EU fuel (**italyfuel** / **austriafuel**), 8 national weather opening **Japan / Ireland /
+Netherlands / Finland / Sweden / Poland / Iceland** + **sgrain** (SG rainfall), 4 seismic opening
+**Canada / Indonesia / Turkey / Japan** (eqcanada / bmkg / turkeyquake / jmaquake), **usgsvolcano** +
+**gdacs** (global all-hazards — the NASA-EONET gap), **hbrivers** (NZ Hilltop), **adsbfi** (ADS-B twin),
+**uktides** (UK marine), **dolarapi** (Argentina blue-dollar FX), **espnscores** (live sports). New ⛔
+this run: EMSC/IRIS (robots-fenced fdsnws), Steam player-count (`Disallow:/`), BART (`/api/` fenced),
+Nord Pool, GVP RSS; parked 🟡: EirGrid (503), IESO stale table, BOM (prior bot-block stands), Taranaki
+Hilltop (robots 503). Prior: the **"10 new" batch** (2026-07-15) —
 8 GBFS cities (bikeshare 16→24, opening **6 new countries**: vienna AT / milan IT / barcelona ES +
 **deep LatAm** rio·saopaulo BR / santiago CL / baires AR / bogota CO) built by teaching the GBFS class
 **v3.0** (`data.feeds` shape + `num_vehicles_available` + localised names; §2) — plus 2 new-file

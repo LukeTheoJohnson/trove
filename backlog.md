@@ -17,6 +17,47 @@ hoard value is: **can you rebuild this history later, or is the snapshot the onl
 Genre still holds (UI-trapped JSON + a join key), gated the same way (robots + sanctioned-first), and
 each pass adds a thin `sources/<name>.py`. But pick **ephemeral-first**.
 
+## 2026-07-21 — the 100-source push (+25 → **100 sources / 129 boards / 16 genres**)
+
+A `/goal`-driven batch to take the repo from 75 → **100 registered sources**, built by live-reconning a
+wide candidate pool directly (batched threaded curl/python; the "make recon output the raw data"
+discipline) and shipping the 25 that gated **✅ clean + returned live rows**. Each is a keyless,
+sanctioned twin of a proven mechanic, chosen for **new geography** (the ROADMAP Axis-C lever). All 25
+pass the offline contract net (216 tests green) and a live `doctor` sweep (25/25 OK). No new genre — all
+fit the existing 16.
+
+- **electricity (+4):** `aeso` (Alberta pool price, CA), `elexon` (GB wholesale market index), `ree`
+  (Spain PVPC + spot), `elia` (Belgium imbalance price, ODS). em6/aemo/nyiso/energinet twins.
+- **EU fuel (+2):** `italyfuel` (MIMIT Osservaprezzi, 21.7k stations, dual-CSV merge), `austriafuel`
+  (E-Control Spritpreisrechner cheapest-near-city diesel). spainfuel/francefuel twins.
+- **national weather (+8):** `jmaweather` (**Japan** — English-labelled office codes sidestep the kanji
+  cp1252 problem; weather codes are language-independent), `meteireann` (**Ireland**), `buienradar`
+  (**Netherlands**), `fmi` (**Finland**), `smhi` (**Sweden**, whole network via station-set/all),
+  `imgw` (**Poland**), `icelandweather` (**Iceland**), `sgrain` (**Singapore** per-gauge rainfall — the
+  air-temp endpoint degraded to 1 station, rainfall has 77). metno/ipma present-state twins.
+- **seismic (+4):** `eqcanada` (NRCan FDSN, CA), `bmkg` (**Indonesia** + tsunami-potential), `turkeyquake`
+  (AFAD, TR), `jmaquake` (**Japan**, carries the JMA shindo intensity scale). geonet/usgsquakes twins —
+  honest low hoard (archived catalogues), but four new seismic geographies.
+- **geohazard (+2):** `usgsvolcano` (US aviation colour codes, de-escalation ordinal), `gdacs` (**global
+  all-hazards** alert board — EQ/cyclone/flood/volcano/drought/wildfire; the NASA-EONET gap trove circled).
+- **rivers (+1):** `hbrivers` (Hawke's Bay Hilltop, a ~10-line subclass — NZ rivers 5→6).
+- **aviation (+1):** `adsbfi` (adsb.fi feeder network, adsblol/opensky twin).
+- **marine (+1):** `uktides` (EA flood-monitoring tidal gauges, noaatides UK twin; the cyclical rise is
+  flagged at fetch since the core only flags drops).
+- **FX/macro (+1):** `dolarapi` (Argentina "blue" vs official USD — un-rebuildable parallel FX, paralelobo
+  twin; `--cc` ar/ve/uy/cl/br).
+- **sports (+1):** `espnscores` (ESPN scoreboard, many leagues via `--cc`; live game-status trajectory —
+  squiggle's cross-league sibling).
+
+**Gate rulings recorded (new ⛔):** EMSC seismicportal (robots **Disallow: /fdsnws/event/1/query**),
+IRIS (robots `Disallow: /`), Steam GetNumberOfCurrentPlayers (`api.steampowered.com` `Disallow: /`),
+PurpleAir + airplanes.live (robots-fenced), BART (`Disallow: /api/`), Nord Pool (fenced + 410), Smithsonian
+GVP RSS (robots-fenced), ESPN's parent site aside (the api.* host is separate/unfenced). **Parked
+🟡/transient:** EirGrid smartgriddashboard (503), IESO Ontario `price_multiday.xml` (frozen at 2025-04-30,
+the energinet/Elspotprices stale-table lesson), BOM AU (worked this run but the prior bot-block ruling
+stands — reliability unproven), Taranaki Hilltop (robots **503**, ambiguous), Southland/Waikato Hilltop
+(endpoint unresolved / host unreachable from here), Estonia ilmateenistus (403).
+
 ## Ported sources
 
 Grouped by genre (same sections as the `--help` listing and the data dictionary).

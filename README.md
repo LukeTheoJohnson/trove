@@ -53,8 +53,8 @@ how to flatten the payload into `Item`/`Obs`, and what "a deal" means.
 
 ## Sources
 
-75 sources in sixteen genres (the same grouping `python trove.py` prints); several sources hoard
-multiple boards (bikeshare 24 GBFS systems, outages 5 utility networks, civic311 3 cities) for 104
+100 sources in sixteen genres (the same grouping `python trove.py` prints); several sources hoard
+multiple boards (bikeshare 24 GBFS systems, outages 5 utility networks, civic311 3 cities) for 129
 boards in total:
 
 ### games / media / collectibles
@@ -83,12 +83,19 @@ boards in total:
 | nyiso   | NY zone (WEST...)   | New York ISO real-time zonal electricity price (LBMP $/MWHr), 5-min; deal = at/below the all-zone avg (US twin of em6/aemo) | keyless NYISO realtime_zone CSV |
 | francefuel | station id       | per-station French forecourt fuel price (`--cc` = grade: gazole/sp95/sp98/e10/e85/gplc), overwritten in place; deal = below the national sample avg | keyless Opendatasoft prix-carburants v2 |
 | energinet | bidding zone (DK1/DK2/DE/NO2/SE3/SE4) | Nordic/DE day-ahead electricity price (EUR/MWh) per bidding zone; deal = at/below the all-zone avg or negative (EU twin of em6/aemo/nyiso) | keyless Energinet DayAheadPrices |
+| aeso    | AB (single market)  | Alberta wholesale pool price ($/MWh) + AIL demand, live hourly; deal = at/below the 30-hour rolling avg (CA twin of em6/aemo/nyiso) | keyless AESO SMP report CSV |
+| elexon  | APXMIDP (GB market) | GB half-hourly wholesale market-index price (GBP/MWh) + volume; deal = at/below today's mean so far (GB wholesale twin of octopus retail) | keyless Elexon BMRS Insights |
+| ree     | series (pvpc/spot)  | Spain Iberian electricity price (EUR/MWh) — regulated PVPC + wholesale spot, bound to the current hour; deal = at/below the day mean | keyless Red Electrica apidatos |
+| elia    | imbalance (BE)      | Belgium imbalance price (EUR/MWh), 15-min, can go negative + system imbalance; deal = price at/below zero (being long is paid) | keyless Elia Open Data (ODS ods134) |
+| italyfuel | station id (idImpianto) | per-station Italian forecourt fuel price (`--cc` = grade: benzina/gasolio/gpl/metano), self-service, overwritten in place; deal = below the national sample avg | keyless MIMIT Osservaprezzi CSV |
+| austriafuel | E-Control station id | cheapest live-price diesel near a city (`--cc` = wien/graz/linz/salzburg/innsbruck/klagenfurt); only the cheapest publish by law; deal = below the nearby-set avg | keyless E-Control Spritpreisrechner |
 
 ### currency & macro
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | frankfurter | BASE:QUOTE (e.g. NZD:USD) | ECB daily FX fixing — one `item` call seeds the full daily series since 1999 into the obs log; deal = base at/above the 90th percentile of its trailing year (a strong moment to convert) | keyless open-source Frankfurter/ECB API |
 | paralelobo | usd (BOB pair)      | Bolivia **parallel-market** USD/BOB rate (P2P aggregate) — un-rebuildable black-market series (vs the ~6.96 official peg); deal = >=40% premium over the peg | keyless paralelo.bo /api/rate |
+| dolarapi | casa (oficial/blue/...) | Argentina (`--cc` = ar/ve/uy/cl/br) USD rates per casa incl. the "blue" street rate — un-rebuildable parallel-vs-official gap; deal = casa >=10% over official | keyless dolarapi.com /v1/dolares |
 
 ### deals, fares & listings
 | source  | join key            | timeline value                         | API                          |
@@ -133,6 +140,21 @@ boards in total:
 | usgsquakes | USGS event id    | global earthquakes (magnitude + place + depth + felt/MMI/tsunami), as-reported then revised; deal = M>=4.5 or tsunami flag (global geonet twin) | keyless USGS FDSN event API |
 | hkweather | forecast date (YYYYMMDD) | Hong Kong 9-day forecast-drift (per-day max/min temp as issued) + live typhoon/rainstorm warnings; deal = max >=33C or a warning in force (metno twin, opens Asia) | keyless HK Observatory opendata |
 | ipma    | IPMA globalIdLocal  | Portugal next-day city forecast (max/min temp as issued + rain probability + weather type); deal = rain probability >=70% (metno twin, EU) | keyless IPMA open-data |
+| hbrivers | gauge site name    | Hawke's Bay (NZ) river flow/level + flood-onset rise (east-coast Cyclone Gabrielle catchments) | keyless HBRC Hilltop XML |
+| imgw    | station id          | live Polish synoptic-station temp + wind + rain + pressure (whole network, one GET); deal = station recording rain (opens Poland) | keyless IMGW dane publiczne |
+| buienradar | station id        | live Dutch weather-station temp/wind/pressure (~40 stations); deal = rain in the weather description (opens NL weather) | keyless Buienradar feed |
+| smhi    | station key         | live Swedish air temperature per station (whole network, one GET); deal = temp >=25C (opens Sweden) | keyless SMHI metobs |
+| fmi     | city slug           | live Finnish obs (temp/wind/humidity) per city (`--cc`); deal = temp >=25C (opens Finland) | keyless FMI open-data WFS |
+| icelandweather | station id    | live Icelandic obs (temp/wind/rain) across ~10 stations; deal = station recording precipitation (opens Iceland) | keyless Vedurstofan xmlweather |
+| meteireann | station slug      | live Irish station obs (temp/wind/rain, ~12 stations); deal = rainfall >0 (opens Ireland) | keyless Met Eireann prodapi |
+| jmaweather | office code       | Japan next-day city forecast (`--cc` = tokyo/osaka/…): weather code + max/min temp + rain prob, as issued; deal = rain code or rain prob >=50% (opens Japan) | keyless JMA open forecast JSON |
+| sgrain  | station id (S77…)   | live Singapore per-gauge rainfall (mm/5min, ~77 gauges) — hyper-local tropical downpours; deal = gauge recording rain (opens SG environment) | keyless data.gov.sg rainfall |
+| eqcanada | NRCan EventID      | Canadian earthquakes (magnitude + place + depth), as-reported then revised; deal = M>=4.0 or a felt event (opens CA seismic) | keyless NRCan FDSN event API |
+| bmkg    | event DateTime      | Indonesian earthquakes (magnitude + depth + tsunami potential); deal = M>=5.0 or tsunami (opens Indonesia) | keyless BMKG TEWS feed |
+| turkeyquake | AFAD eventID     | Turkish earthquakes (magnitude + place + province); deal = M>=4.0 (opens Turkey) | keyless AFAD event filter |
+| jmaquake | JMA event id (eid) | Japanese earthquakes: magnitude + the JMA seismic-intensity scale (shindo 1-7); deal = M>=4.5 or intensity 5- and above (opens JP seismic) | keyless JMA quake list |
+| usgsvolcano | vnum            | US volcanoes above background: aviation colour code (GREEN/YELLOW/ORANGE/RED) + alert level, de-escalation drift; deal = ORANGE/RED | keyless USGS HANS |
+| gdacs   | eventtype:eventid   | global multi-hazard alerts (EQ/cyclone/flood/volcano/drought/wildfire): Green/Orange/Red alert lifecycle; deal = ORANGE/RED (global all-hazards board) | keyless GDACS EVENTS4APP |
 
 ### space
 | source  | join key            | timeline value                         | API                          |
@@ -148,6 +170,7 @@ boards in total:
 | zqnflights | dir:flightNo:schDate:schTime | Queenstown Airport delay-drift + status churn (NZ's most disruption-prone board); deal = delayed/cancelled | keyless queenstownairport.co.nz /api/flights JSON |
 | opensky | icao24 (in a bbox)  | live aircraft over a region (`--cc` picks the box: nz/au/uk/nyc/sf/la): altitude/speed/heading snapshot, un-rebuildable anon; deal = airborne, <3000m and descending (on approach) | keyless OpenSky Network state vectors (anon) |
 | adsblol | icao hex (in range) | live aircraft near a point (`--cc` region centre+radius: lon/nz/au/syd/nyc/la/sf): altitude (ft)/speed/heading; deal = airborne, <10000ft and sinking (approach); keyless-community opensky twin | keyless adsb.lol community ADS-B |
+| adsbfi  | icao hex (in range) | second keyless-community ADS-B network (`--cc` region as adsblol): live aircraft altitude/speed/heading; deal = airborne, <10000ft and sinking | keyless adsb.fi community ADS-B |
 
 ### roads & transport
 | source  | join key            | timeline value                         | API                          |
@@ -168,6 +191,7 @@ boards in total:
 | source  | join key            | timeline value                         | API                          |
 |---------|---------------------|----------------------------------------|------------------------------|
 | squiggle | year:round:id      | AFL (Australian Football League) game score progression: completion % (0-100) + score updates as games play to final; deal = game completed or score changed; `--cc` = a team name filter | keyless Squiggle AFL API |
+| espnscores | ESPN event id     | live sports scores + game status (`--cc` = league: epl/laliga/nba/nfl/mlb/nhl/…): scoreline + pre->in->post trajectory; deal = game in progress now | keyless ESPN scoreboard API |
 
 ### parking
 | source  | join key            | timeline value                         | API                          |
@@ -185,6 +209,7 @@ boards in total:
 |---------|---------------------|----------------------------------------|------------------------------|
 | noaatides | station id        | US coastal water level (ft above MLLW) rising/falling with the tide + storm surge; deal = rising and near the 24h max (high tide/surge) | keyless NOAA CO-OPS datagetter |
 | ndbc    | buoy station id     | offshore buoy sea state: significant wave height + period + wind + water temp; deal = wave height >=3 m (big swell) | keyless NOAA NDBC latest_obs |
+| uktides | measure notation    | UK coastal tide level (mAOD, ~214 gauges); the cyclical rise is invisible to drop logic so fetch flags rising; deal = incoming/flooding tide (UK twin of noaatides) | keyless EA flood-monitoring API (OGL) |
 
 ### civic & government
 | source  | join key            | timeline value                         | API                          |
